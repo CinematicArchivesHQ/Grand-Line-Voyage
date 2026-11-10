@@ -298,7 +298,7 @@
         '<div class="hero-meta"><span>Season ' + s.n + " · " + esc(s.title) + "</span><span>" + esc(nx.arc) + " arc</span><span>Aired " + niceDate(nx.d) + "</span>" + badge(nx.type) + "</div>" +
         (hl ? '<div class="hero-hl">✦ ' + esc(hl) + "</div>" : "") +
         (manga(nx) ? '<div class="hero-manga">📖 ' + esc(manga(nx).text) + "</div>" : "") +
-        (stillOf(nx.n) && stillOK(nx.n) ? '<img class="hero-still" src="' + IMG + "w500" + stillOf(nx.n) + '" alt="" loading="lazy">' : "") +
+        (stillOf(nx.n) && stillOK(nx.n) ? '<img onerror="this.remove()" class="hero-still" src="' + IMG + "w500" + stillOf(nx.n) + '" alt="" loading="lazy">' : "") +
         '<div class="hero-actions"><button class="btn primary" data-act="toggle" data-ep="' + nx.n + '">Mark watched</button><button class="btn" data-act="open" data-ep="' + nx.n + '">Details</button><a class="btn ghost" href="#log/' + s.n + '">Open Season ' + s.n + "</a></div>" +
         '<div class="queue"><div class="queue-h">Then…</div>' + EP.filter((e) => e.n > nx.n && !isW(e.n) && counts(e) && !(S.settings.skipFiller && (e.type === "filler" || e.type === "recap"))).slice(0, 4).map((e) =>
           '<button class="q-item" data-act="open" data-ep="' + e.n + '"><b>' + e.n + "</b><span>" + esc(e.t) + "</span>" + badge(e.type) + "</button>").join("") + "</div>" + watchLinks() + "</section>";
@@ -379,7 +379,7 @@
       const pr = progress(s.eps), types = { canon: 0, mixed: 0, filler: 0, recap: 0 };
       s.eps.forEach((e) => types[e.type]++);
       return '<a class="season-card' + (pr.pct >= 100 ? " done" : "") + '" href="#log/' + s.n + '" style="--accent:' + s.color + '">' +
-        (posterOf(s.n) && S.settings.art ? '<img class="sc-poster" src="' + IMG + "w185" + posterOf(s.n) + '" alt="" loading="lazy">' : "") +
+        (posterOf(s.n) && S.settings.art ? '<img onerror="this.remove()" class="sc-poster" src="' + IMG + "w185" + posterOf(s.n) + '" alt="" loading="lazy">' : "") +
         '<div class="sc-top"><span class="sc-num">' + pad(s.n) + "</span>" + ring(pr.pct, 54, 5, s.color) + '<span class="sc-pct">' + Math.round(pr.pct) + "%</span></div>" +
         '<div class="sc-title">' + esc(s.title) + "</div>" +
         '<div class="sc-meta">Episodes ' + s.start + "–" + s.last + (s.ongoing ? "+" : "") + " · " + s.years + (seasonChapters(s) ? " · Ch. " + seasonChapters(s) : "") + "</div>" +
@@ -418,7 +418,7 @@
       '<div class="sh-stats"><span><b>' + s.eps.length + "</b> episodes</span><span><b>" + s.start + "–" + s.last + "</b></span>" + (seasonChapters(s) ? "<span>📖 Manga ch. <b>" + seasonChapters(s) + "</b></span>" : "") + "<span><b>" + hours(s.eps.length * mp) + "</b> runtime</span>" +
       Object.keys(types).filter((t) => types[t]).map((t) => '<span><i class="dot d-' + t + '"></i><b>' + types[t] + "</b> " + t + "</span>").join("") + "</div>" +
       '<div class="sh-actions"><button class="btn primary" data-act="range" data-a="' + s.start + '" data-b="' + s.end + '" data-v="' + (pr.pct >= 100 ? 0 : 1) + '">' + (pr.pct >= 100 ? "Clear season" : "Mark season watched") + '</button><a class="btn ghost" href="#crew">' + shown + "/" + debuts.length + " characters introduced →</a></div>" + watchLinks() + "</div>" +
-      (posterOf(n) && S.settings.art ? '<img class="sh-poster" src="' + IMG + "w342" + posterOf(n) + '" alt="Season ' + n + ' artwork" loading="lazy">' : "") +
+      (posterOf(n) && S.settings.art ? '<img onerror="this.remove()" class="sh-poster" src="' + IMG + "w342" + posterOf(n) + '" alt="Season ' + n + ' artwork" loading="lazy">' : "") +
       '<div class="sh-r">' + ring(pr.pct, 132, 10, s.color) + '<div class="sh-pct"><b>' + Math.round(pr.pct) + "%</b><span>" + pr.done + " / " + pr.total + "</span></div></div></header>" +
       filterBar(false) + (body || '<p class="muted center">Nothing matches the current filters.</p>') +
       '<div class="season-nav">' + (n > 1 ? '<a class="btn" href="#log/' + (n - 1) + '">← Season ' + (n - 1) + "</a>" : "<span></span>") + (n < 22 ? '<a class="btn" href="#log/' + (n + 1) + '">Season ' + (n + 1) + " →</a>" : "") + "</div></div>";
@@ -432,7 +432,7 @@
     const modal = $("#modal");
     modal.dataset.ep = n;
     const stars = [1, 2, 3, 4, 5].map((i) => '<button class="star' + (i <= r ? " on" : "") + '" data-act="rate" data-ep="' + n + '" data-v="' + i + '" aria-label="Rate ' + i + '">★</button>').join("");
-    const st = stillOf(n) && stillOK(n) ? '<img class="m-still" src="' + IMG + "w780" + stillOf(n) + '" alt="">' : "";
+    const st = stillOf(n) && stillOK(n) ? '<img onerror="this.remove()" class="m-still" src="' + IMG + "w780" + stillOf(n) + '" alt="">' : "";
     const ov = ART && ART.ov && ART.ov[n];
     const mg = manga(e);
     $("#modalBody").innerHTML = st +
@@ -441,7 +441,8 @@
       (hl ? '<div class="m-hl">✦ ' + esc(hl) + "</div>" : "") +
       (e.type === "filler" ? '<p class="m-note">Anime-original filler — skippable without missing the main story, though some are genuinely fun.</p>' : e.type === "mixed" ? '<p class="m-note">Mixed — mostly canon with some anime-original padding.</p>' : e.type === "recap" ? '<p class="m-note">Recap / retrospective episode.</p>' : "") +
       '<div class="m-actions"><button class="btn ' + (w ? "" : "primary") + '" data-act="toggle" data-ep="' + n + '">' + (w ? "✓ Watched — undo" : "Mark watched") + '</button><button class="btn" data-act="upto" data-ep="' + n + '">Mark all up to here</button><button class="btn ghost fav' + (S.favs[n] ? " on" : "") + '" data-act="fav" data-ep="' + n + '">' + (S.favs[n] ? "★ Favorite" : "☆ Favorite") + "</button></div>" +
-      (w ? '<div class="m-when">Logged ' + (S.bulk[n] ? "via bulk mark on " : "") + niceTs(S.watched[n]) + "</div>" : "") +
+      (w ? '<div class="m-when"><label for="watchDate">Watched on</label><input type="date" id="watchDate" data-ep="' + n + '" value="' + dayKey(S.watched[n]) + '" min="' + e.d + '" max="' + todayKey() + '">' +
+        (S.bulk[n] ? '<span class="muted">Bulk-marked — set the real date and it will count toward your streaks and activity.</span>' : '<span class="muted">Change it if you watched this on another day.</span>') + "</div>" : "") +
       (mg ? '<div class="m-sec"><div class="m-lbl">Manga</div><div>📖 ' + esc(mg.text) + "</div></div>" : "") +
       (ov ? '<div class="m-sec"><div class="m-lbl">Synopsis</div>' + (w || !S.settings.spoiler || UI.reveal === n ? '<p class="m-syn">' + esc(ov) + '</p><div class="tmdb small muted">Synopsis via TMDB</div>' : '<button class="btn sm ghost" data-act="reveal" data-ep="' + n + '">Reveal synopsis (may contain spoilers)</button>') + "</div>" : "") +
       '<div class="m-sec"><div class="m-lbl">Your rating</div><div class="stars">' + stars + (r ? '<button class="link" data-act="rate" data-ep="' + n + '" data-v="0">clear</button>' : "") + "</div></div>" +
@@ -715,6 +716,18 @@
     else if (t.id === "setMotion") st.reduceMotion = t.checked;
     else if (t.id === "setArt") st.art = t.checked;
     else if (t.id === "importFile") { importData(t.files[0]); return; }
+    else if (t.id === "watchDate") {
+      const n = +t.dataset.ep, v = t.value;
+      if (!isW(n) || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+      if (v > todayKey()) { toast("That date is in the future"); t.value = dayKey(S.watched[n]); return; }
+      const prev = new Date(S.watched[n]), d = new Date(v + "T00:00:00");
+      d.setHours(S.bulk[n] ? 20 : prev.getHours(), S.bulk[n] ? 0 : prev.getMinutes(), 0, 0);
+      S.watched[n] = d.getTime();
+      delete S.bulk[n];
+      commit(true);
+      toast("Episode " + n + " dated " + niceDate(v));
+      return;
+    }
     else if (t.id === "paceCalc") { UI.paceCalc = clamp(+t.value || 1, 1, 100); rerender(); return; }
     else return;
     commit(true);

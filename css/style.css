@@ -283,7 +283,9 @@ select { padding: 7px 10px; border-radius: 10px; border: 1px solid var(--line); 
 .m-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 18px 26px 0; }
 .m-actions .fav { font-size: .9rem; color: var(--text); }
 .m-actions .fav.on { color: var(--gold); }
-.m-when { padding: 8px 26px 0; color: var(--canon); font-size: .82rem; }
+.m-when { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 12px 26px 0; color: var(--canon); font-size: .85rem; font-weight: 600; }
+.m-when input { padding: 6px 10px; border-radius: 9px; border: 1px solid rgba(61, 220, 151, .45); background: rgba(0, 0, 0, .25); color-scheme: dark; }
+.m-when .muted { font-weight: 400; font-size: .78rem; flex-basis: 100%; }
 .m-sec { padding: 16px 26px 0; }
 .m-lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
 .stars { display: flex; align-items: center; gap: 2px; }
