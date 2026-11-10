@@ -119,83 +119,135 @@ def pick(box, *keys):
 
 
 def expand(text):
-    d = api(action="expandtemplates", prop="wikitext", text=text, title="Chapter 1")
-    return d.get("expandtemplates", {}).get("wikitext", "")
+    data = urllib.parse.urlencode({"action": "expandtemplates", "prop": "wikitext", "text": text,
+                                   "title": "Chapter 1", "format": "json", "formatversion": "2"}).encode()
+    req = urllib.request.Request(API, data=data, headers={"User-Agent": UA})
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(req, timeout=90) as r:
+                return json.load(r).get("expandtemplates", {}).get("wikitext", "")
+        except Exception as e:
+            if attempt == 4:
+                raise
+            print("retry", e)
+            time.sleep(3 + attempt * 4)
 
 
-def explore():
-    for c in (1, 2, 8, 100, 1000, 1126, 1140, 1150, 1170):
-        print(f"=== ch{c}:", json.dumps(expand(f"{{{{WC|Chapter {c}}}}}@@{{{{Which volume|{c}}}}}@@{{{{WhichMangaDate|Chapter {c}}}}}"), ensure_ascii=False)[:600])
-    return
-    for t, txt in fetch_pages(["Template:Chapter Box", "Template:Episode Box"]).items():
-        if t.startswith("Template"):
-            print(f"=== {t}:", json.dumps(txt[:2500], ensure_ascii=False))
-    d = api(action="query", list="allpages", apnamespace="828", aplimit="500")
-    names = [p["title"] for p in d.get("query", {}).get("allpages", [])]
-    print("=== modules:", json.dumps(names, ensure_ascii=False))
+DATE = re.compile(r"([A-Z][a-z]+ \d{1,2}, \d{4})")
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def iso(d):
+    m = DATE.search(d or "")
+    if not m:
+        return ""
+    mon, day, yr = re.match(r"([A-Za-z]+) (\d+), (\d+)", m.group(1)).groups()
+    return f"{yr}-{MONTHS.index(mon) + 1:02d}-{int(day):02d}" if mon in MONTHS else ""
+
+
+def chapter_info(nums):
+    """Expand WC / Which volume / WhichMangaDate for many chapters in one request."""
+    sep = "\n@@@SPLIT@@@\n"
+    text = sep.join(f"{{{{WC|Chapter {c}}}}}@@{{{{Which volume|{c}}}}}@@{{{{WhichMangaDate|Chapter {c}}}}}" for c in nums)
+    parts = expand(text).split("@@@SPLIT@@@")
+    out = {}
+    for c, part in zip(nums, parts):
+        bits = part.strip().split("@@")
+        wc = bits[0] if bits else ""
+        eps = []
+        for ep, pages in re.findall(r"\[\[Episode (\d+)\]\](?:\s*\(p\.\s*([^)]*)\))?", wc):
+            cnt = 0
+            for a, b in re.findall(r"(\d+)(?:-(\d+))?", pages or ""):
+                cnt += (int(b) - int(a) + 1) if b else 1
+            eps.append((int(ep), cnt or 1))
+        vol = int(bits[1]) if len(bits) > 1 and bits[1].strip().isdigit() else None
+        out[c] = {"eps": eps, "vol": vol, "date": iso(bits[2] if len(bits) > 2 else "")}
+    return out
+
+
+def split_main(eps):
+    """Separate the main adaptation from later flashbacks/recaps: keep episodes near the one with the most pages."""
+    if not eps:
+        return [], []
+    best = max(eps, key=lambda x: (x[1], -x[0]))[0]
+    main = sorted({e for e, _ in eps if abs(e - best) <= 6})
+    extra = sorted({e for e, _ in eps if abs(e - best) > 6})
+    return main, extra
+
+
+def meta_names():
+    txt = open(os.path.join(ROOT, "js", "meta.js"), encoding="utf-8").read()
+    return re.findall(r'C\((\d+), "([^"]+)", "([^"]+)"', txt)
 
 
 def main():
-    probe = "--probe" in sys.argv
-    if probe:
-        explore()
+    if "--probe" in sys.argv:
+        print(json.dumps(chapter_info([1, 2, 8, 1126, 1150]), ensure_ascii=False))
         return
     eps_txt = open(EPISODES_JS, encoding="utf-8").read()
     last_ep = max(int(n) for n in re.findall(r"\[(\d+),\"", eps_txt))
 
-    # ---- chapters: walk until several consecutive pages are missing
-    chapters, n, misses = [], 1, 0
-    while misses < 3 and n < 3000:
-        titles = [f"Chapter {k}" for k in range(n, n + 50)]
-        pages = fetch_pages(titles)
+    # ---- chapter pages (titles), walking until pages stop existing
+    titles, n = {}, 1
+    while n < 3000:
+        pages = fetch_pages([f"Chapter {k}" for k in range(n, n + 50)])
+        found = 0
         for k in range(n, n + 50):
             t = pages.get(f"Chapter {k}")
-            if not t:
-                misses += 1
-                continue
-            misses = 0
-            box = infobox(t)
-            if probe and k in (1, 1000):
-                print(f"--- Chapter {k} raw:", json.dumps(t[:3000], ensure_ascii=False))
-            title = clean(pick(box, "ename", "title", "eng", "english"))
-            vol = ints(pick(box, "vol", "volume"), 300)
-            date = clean(pick(box, "date", "release", "released"))
-            chapters.append([k, title, vol[0] if vol else None, date])
-            if misses >= 3:
-                break
-        n += 50
-        if probe and n > 100:
+            if t:
+                found += 1
+                box = infobox(t)
+                titles[k] = clean(pick(box, "ename", "title")) or clean(box.get("rname", ""))
+        if found == 0:
             break
-    print(f"chapters found: {len(chapters)}")
+        n += 50
+    last_ch = max(titles)
+    print(f"chapters: {len(titles)} (latest {last_ch})")
 
-    # ---- episodes -> chapters
-    ep_map = {}
-    hi = chapters[-1][0] + 5 if chapters else 2000
+    # ---- chapter -> episodes, volume, date
+    info = {}
+    nums = sorted(titles)
+    for i in range(0, len(nums), 60):
+        info.update(chapter_info(nums[i:i + 60]))
+        time.sleep(0.6)
+    chapters, ep_main, ep_extra = [], {}, {}
+    for c in nums:
+        d = info.get(c, {})
+        main_eps, extra = split_main([e for e in d.get("eps", []) if e[0] <= last_ep + 50])
+        chapters.append([c, titles[c], d.get("vol"), d.get("date", ""), main_eps, extra])
+        for e in main_eps:
+            ep_main.setdefault(e, []).append(c)
+        for e in extra:
+            ep_extra.setdefault(e, []).append(c)
+    print(f"episodes with main chapters: {len(ep_main)}; flashback references: {len(ep_extra)}")
+
+    # ---- character debut episodes from Episode pages (charDebut field)
+    debut_by_name = {}
     for s in range(1, last_ep + 1, 50):
         pages = fetch_pages([f"Episode {k}" for k in range(s, min(s + 50, last_ep + 1))])
         for k in range(s, min(s + 50, last_ep + 1)):
-            t = pages.get(f"Episode {k}")
-            if not t:
-                continue
-            box = infobox(t)
-            if probe and k in (1, 30):
-                print(f"--- Episode {k} raw:", json.dumps(t[:3500], ensure_ascii=False))
-            chs = ints(pick(box, "chapter", "chapters", "adapted", "manga"), hi)
-            if chs:
-                ep_map[k] = chs
-        if probe and s > 1:
-            break
-    print(f"episodes with chapters: {len(ep_map)} of {last_ep}")
-    if probe:
-        return
-    if len(chapters) < 1000 or len(ep_map) < 900:
-        sys.exit("Too little data parsed — not writing manga.js")
+            box = infobox(pages.get(f"Episode {k}", ""))
+            for name in re.findall(r"\[\[([^\]|#]+)", box.get("chardebut", "")):
+                debut_by_name.setdefault(name.strip(), k)
+    debuts = {}
+    for ep, cid, name in meta_names():
+        cands = [p.strip() for p in re.split(r"\s*&\s*|,\s*", name)]
+        hits = [debut_by_name[c] for c in cands if c in debut_by_name]
+        if hits:
+            debuts[cid] = min(hits)
+        else:
+            print("no wiki debut match:", name)
+    print(f"character debuts matched: {len(debuts)}")
 
-    data = {"updated": time.strftime("%Y-%m-%d"), "source": "One Piece Wiki (CC BY-SA)", "chapters": chapters, "ep": ep_map}
-    content = "/* Auto-generated by tools/update_manga.py from the One Piece Wiki (CC BY-SA 3.0). */\nwindow.OP_MANGA=" + \
-        json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n"
+    if len(chapters) < 1000 or len(ep_main) < 800:
+        sys.exit("Too little data parsed — not writing manga.js")
+    data = {"updated": time.strftime("%Y-%m-%d"), "source": "One Piece Wiki (CC BY-SA)",
+            "chapters": chapters, "debuts": debuts}
+    content = "/* Auto-generated by tools/update_manga.py from the One Piece Wiki (onepiece.fandom.com, CC BY-SA 3.0).\n" \
+              "   chapters: [number, title, volume, release date, [episodes adapting it], [later flashback/recap episodes]] */\n" \
+              "window.OP_MANGA=" + json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("],[", "],\n[") + ";\n"
     old = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
-    strip = lambda s: re.sub(r'"updated":"[^"]*"', "", s)
+    strip = lambda t: re.sub(r'"updated":"[^"]*"', "", t)
     if strip(old) != strip(content):
         open(OUT, "w", encoding="utf-8").write(content)
         print("updated js/manga.js")
