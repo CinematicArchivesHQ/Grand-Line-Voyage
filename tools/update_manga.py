@@ -118,7 +118,15 @@ def pick(box, *keys):
     return ""
 
 
+def expand(text):
+    d = api(action="expandtemplates", prop="wikitext", text=text, title="Chapter 1")
+    return d.get("expandtemplates", {}).get("wikitext", "")
+
+
 def explore():
+    for c in (1, 2, 8, 100, 1000, 1126, 1140, 1150, 1170):
+        print(f"=== ch{c}:", json.dumps(expand(f"{{{{WC|Chapter {c}}}}}@@{{{{Which volume|{c}}}}}@@{{{{WhichMangaDate|Chapter {c}}}}}"), ensure_ascii=False)[:600])
+    return
     for t, txt in fetch_pages(["Template:Chapter Box", "Template:Episode Box"]).items():
         if t.startswith("Template"):
             print(f"=== {t}:", json.dumps(txt[:2500], ensure_ascii=False))
