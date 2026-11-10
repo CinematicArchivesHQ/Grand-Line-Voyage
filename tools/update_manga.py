@@ -207,9 +207,12 @@ def main():
     # ---- chapter -> episodes, volume, date
     info = {}
     nums = sorted(titles)
-    for i in range(0, len(nums), 60):
-        info.update(chapter_info(nums[i:i + 60]))
-        time.sleep(0.6)
+    for i in range(0, len(nums), 8):
+        got = chapter_info(nums[i:i + 8])
+        info.update(got)
+        if i % 200 == 0:
+            print(f"  chapters {nums[i]}+: {sum(1 for v in got.values() if v['eps'])}/{len(got)} have episodes")
+        time.sleep(0.3)
     chapters, ep_main, ep_extra = [], {}, {}
     for c in nums:
         d = info.get(c, {})
@@ -229,9 +232,15 @@ def main():
             box = infobox(pages.get(f"Episode {k}", ""))
             for name in re.findall(r"\[\[([^\]|#]+)", box.get("chardebut", "")):
                 debut_by_name.setdefault(name.strip(), k)
+    alias = {"Axe-Hand Morgan": "Morgan", "Klahadore": "Kuro", "Mr. 5 & Miss Valentine": "Gem & Mikita", "Mr. 3": "Galdino",
+             "Miss Goldenweek": "Marianne", "Bon Clay": "Bentham", "Mr. 1 & Miss Doublefinger": "Daz Bonez & Zala",
+             "Dr. Kureha": "Kureha", "Dr. Hiriluk": "Hiriluk", "Kohza": "Koza", "Saint Charlos": "Charlos", "Curly Dadan": "Curly Dadan",
+             "Madam Shyarly": "Shyarly", "Don Chinjao": "Chinjao", "The One-Legged Toy Soldier": "Kyros", "Komurasaki": "Kozuki Hiyori",
+             "Hyogoro": "Hyogoro", "Vegapunk Lilith": "Lilith", "Dr. Vegapunk": "Vegapunk", "Kozuki Momonosuke": "Kozuki Momonosuke",
+             "Professor Clover": "Clover", "Marco": "Marco", "Trafalgar Law": "Trafalgar D. Water Law"}
     debuts = {}
     for ep, cid, name in meta_names():
-        cands = [p.strip() for p in re.split(r"\s*&\s*|,\s*", name)]
+        cands = [p.strip() for p in re.split(r"\s*&\s*|,\s*", alias.get(name, name) + " & " + name)]
         hits = [debut_by_name[c] for c in cands if c in debut_by_name]
         if hits:
             debuts[cid] = min(hits)
