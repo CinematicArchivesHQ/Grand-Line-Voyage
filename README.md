@@ -12,7 +12,8 @@ A CinematicArchivesHQ fan project: a static, no-build web app for tracking every
 - **Bounty Board** – 60+ achievements that raise your personal bounty and rank (Stowaway → King of the Pirates).
 - **Ship's Log** – activity heatmap, weekly chart, canon/filler breakdown, per-season completion and ratings, broadcast-year chart, finish-date calculator.
 - **Side Voyages** – Netflix live action and the 15 animated films, tracked separately (never counted toward 1999-series completion).
-- **Manga** – chapter ranges per arc and season (one chapter per episode from Elbaph onward).
+- **Manga tracker** – every released chapter (title, volume, release date) grouped by arc, with read checkboxes, editable read dates, "read 1 → N", and manga bounties.
+- **Anime ↔ manga correlation** – each episode lists the exact chapters it adapts (and each chapter the episodes that animate it), a chart plotting every episode against the chapters adapted, where your anime and manga progress line up, and adaptation pace per season.
 - **Where to watch** – Crunchyroll, Netflix, Hulu and JustWatch links on every season.
 - **Settings** – minutes per episode, canon-only completion mode, skip filler in "next up", export/restore JSON backups.
 
@@ -35,6 +36,11 @@ Progress is stored in the browser's `localStorage` (key `grandline-logbook-v1`).
 Settings → Secrets and variables → Actions → New repository secret, name it `TMDB_API_KEY`, paste the key,
 and run the workflow once from the Actions tab. Until then the site works without artwork.
 Episode stills and synopses respect the spoiler shield (shown for watched episodes and the next one).
+
+### Manga data (One Piece Wiki)
+`.github/workflows/update-manga.yml` runs weekly (and on demand). `tools/update_manga.py` reads the
+One Piece Wiki's MediaWiki API (CC BY-SA) for chapter titles, volumes, release dates, page-level
+chapter→episode mapping and character debut episodes, and writes `js/manga.js`. No key needed.
 
 ## Adding episodes by hand
 Append rows to `js/episodes.js` in the form `[1181,"Episode title","2027-04-04"]`, then bump

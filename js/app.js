@@ -47,7 +47,17 @@
   const FIRST = EP[0].n, LAST = EP[EP.length - 1].n;
   const SEASON = {};
   M.SEASONS.forEach((s) => { SEASON[s.n] = s; s.eps = EP.filter((e) => e.s === s.n); s.last = s.eps.length ? s.eps[s.eps.length - 1].n : s.start; });
+  const MG = window.OP_MANGA || null;
+  const CH = MG ? MG.chapters.map(([n, t, v, d, eps, fx]) => ({ n, t, v, d, eps: eps || [], fx: fx || [] })).filter((c) => !c.d || c.d <= todayKey()) : [];
+  const CHN = {}, EP_CH = {}, EP_FX = {};
+  CH.forEach((c) => { CHN[c.n] = c; c.eps.forEach((e) => (EP_CH[e] = EP_CH[e] || []).push(c.n)); c.fx.forEach((e) => (EP_FX[e] = EP_FX[e] || []).push(c.n)); });
+  const LAST_CH = CH.length ? CH[CH.length - 1].n : 0;
+  const MARCS = (() => { const seen = new Set(); return Object.keys(M.MANGA).map((k) => ({ name: k, a: M.MANGA[k][0], b: M.MANGA[k][1] || Infinity })).filter((r) => { if (seen.has(r.a)) return false; seen.add(r.a); return true; }).sort((x, y) => x.a - y.a); })();
+  const chArc = (n) => (MARCS.filter((r) => n >= r.a && n <= r.b).pop() || { name: "Other" }).name;
+  const chRange = (list) => { if (!list.length) return null; const a = Math.min(...list), b = Math.max(...list); return a === b ? "Ch. " + a : "Ch. " + a + "–" + b; };
+  const epsChapters = (eps) => { const out = []; eps.forEach((e) => (EP_CH[e.n] || []).forEach((c) => out.push(c))); return out; };
   function manga(e) {
+    if (EP_CH[e.n]) { const r = chRange(EP_CH[e.n]); return { text: (EP_CH[e.n].length > 1 ? "Chapters " : "Chapter ") + r.slice(4), short: r }; }
     const one = M.ONE_TO_ONE.find((o) => e.n >= o.from);
     if (one && e.type !== "filler") return { text: "Chapter " + (e.n - one.offset), short: "Ch. " + (e.n - one.offset) };
     if (e.type === "filler") return { text: "Anime-original — not in the manga" + (M.MANGA[e.arc] ? " (set during the " + e.arc + " arc)" : ""), short: "Anime-original" };
@@ -57,6 +67,7 @@
     return null;
   }
   function seasonChapters(s) {
+    if (MG) { const r = chRange(epsChapters(s.eps)); return r ? r.slice(4) : null; }
     let a = Infinity, b = 0, open = false;
     s.eps.forEach((e) => { const one = M.ONE_TO_ONE.find((o) => e.n >= o.from); if (one && e.type !== "filler") { a = Math.min(a, e.n - one.offset); b = Math.max(b, e.n - one.offset); return; } const r = M.MANGA[e.arc]; if (r && e.type !== "filler") { a = Math.min(a, r[0]); if (r[1]) b = Math.max(b, r[1]); else open = true; } });
     return isFinite(a) ? a + "–" + (open && !b ? "…" : b) : null;
@@ -65,14 +76,14 @@
   const posterOf = (s) => ART && ART.posters && ART.posters[s];
   const TYPE_LABEL = { canon: "Canon", mixed: "Mixed", filler: "Filler", recap: "Recap" };
   const DEBUTS = {};
-  const CHARS = M.CHARACTERS.map((c, i) => Object.assign({}, c, { i })).sort((a, b) => a.ep - b.ep || a.i - b.i);
+  const CHARS = M.CHARACTERS.map((c, i) => Object.assign({}, c, { i }, MG && MG.debuts && MG.debuts[c.id] && Math.abs(MG.debuts[c.id] - c.ep) <= 15 ? { ep: MG.debuts[c.id] } : {})).sort((a, b) => a.ep - b.ep || a.i - b.i);
   CHARS.forEach((c, i) => { c.order = i + 1; c.s = SEASON_BY_EP[c.ep] || 1; (DEBUTS[c.ep] = DEBUTS[c.ep] || []).push(c); });
   const PRE_GROUP = { nami: "Civilian", zoro: "Civilian", usopp: "Civilian", sanji: "Civilian", chopper: "Ally", robin: "Antagonist", franky: "Civilian", brook: "Pirate", jinbe: "Pirate" };
   const GROUP_COLOR = { "Straw Hat": "#f2b632", Pirate: "#d7263d", Marine: "#4f8cff", Ally: "#3ddc97", Antagonist: "#9b3dff", Civilian: "#c9b58b", Royalty: "#ff8fd0", Revolutionary: "#ff7a1a", "World Government": "#8fa3b8", Giant: "#7bc950", Legend: "#ffd98a" };
 
   /* --------------------------------------------------------------- state */
   const DEFAULT = () => ({
-    v: 1, watched: {}, bulk: {}, ratings: {}, notes: {}, favs: {}, side: {}, ach: {},
+    v: 1, watched: {}, bulk: {}, ratings: {}, notes: {}, favs: {}, side: {}, ach: {}, read: {}, readBulk: {},
     settings: { name: "Rookie Pirate", minutes: 24, goal: 3, spoiler: true, completion: "all", skipFiller: false, reduceMotion: false, art: true },
     created: Date.now()
   });
@@ -83,7 +94,7 @@
       const d = JSON.parse(raw), def = DEFAULT();
       const out = Object.assign(def, d);
       out.settings = Object.assign(DEFAULT().settings, d.settings || {});
-      ["watched", "bulk", "ratings", "notes", "favs", "side", "ach"].forEach((k) => { if (!out[k] || typeof out[k] !== "object") out[k] = {}; });
+      ["watched", "bulk", "ratings", "notes", "favs", "side", "ach", "read", "readBulk"].forEach((k) => { if (!out[k] || typeof out[k] !== "object") out[k] = {}; });
       return out;
     } catch (e) { return DEFAULT(); }
   }
@@ -91,7 +102,7 @@
   let storageOK = true;
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); storageOK = true; } catch (e) { storageOK = false; } }
 
-  const UI = { type: "all", hideWatched: false, q: "", crewSort: "season", crewGroup: "all", crewQ: "", paceCalc: null };
+  const UI = { openArcs: {}, hideRead: false, chQ: "", type: "all", hideWatched: false, q: "", crewSort: "season", crewGroup: "all", crewQ: "", paceCalc: null };
 
   /* ------------------------------------------------------------ derived */
   const isW = (n) => !!S.watched[n];
@@ -174,6 +185,11 @@
   A("caughtup", "Caught Up!", "Watch the most recent aired episode.", 2e8, "📡", () => R(isW(LAST) ? 1 : 0, 1));
   A("la1", "Live Action Debut", "Finish Season 1 of the Netflix live-action series.", 3e7, "🎬", () => R(sideCount("la1"), 8));
   A("la2", "Into the Grand Line (Live)", "Finish Season 2 of the Netflix live-action series.", 3e7, "🎥", () => R(sideCount("la2"), 8));
+  const readCount = () => Object.keys(S.read).length;
+  A("read1", "Romance Dawn (Manga)", "Read Chapter 1 of the manga.", 5e6, "📖", () => R(S.read[1] ? 1 : 0, 1));
+  [[100, "Bookworm", 5e7], [500, "Scholar of Ohara", 2e8], [1000, "Poneglyph Reader", 5e8]].forEach(([n, name, b]) =>
+    A("read" + n, name, "Read " + fmt(n) + " manga chapters.", b, "📚", () => R(readCount(), n)));
+  A("readall", "Caught Up (Manga)", "Read every released chapter.", 1e9, "🗞️", () => R(readCount(), LAST_CH || 1));
   A("films", "Movie Night", "Watch all 15 animated films.", 1.2e8, "🍿", () => R(sideCount("films"), 15));
   function sideCount(gid) { return Object.keys(S.side).filter((k) => k.startsWith(gid + ":") && S.side[k]).length; }
 
@@ -237,7 +253,7 @@
   }
 
   /* ------------------------------------------------------------- routing */
-  const ROUTES = ["voyage", "log", "crew", "bounties", "stats", "side", "helm"];
+  const ROUTES = ["voyage", "log", "manga", "crew", "bounties", "stats", "side", "helm"];
   function route() {
     const h = (location.hash || "#voyage").slice(1).split("/");
     return { view: ROUTES.includes(h[0]) ? h[0] : "voyage", arg: h[1] ? decodeURIComponent(h[1]) : null };
@@ -247,12 +263,13 @@
     render();
     window.scrollTo(0, y);
     if ($("#modal").classList.contains("open") && $("#modal").dataset.ep) openEp(+$("#modal").dataset.ep, true);
+    else if ($("#modal").classList.contains("open") && $("#modal").dataset.ch) openCh(+$("#modal").dataset.ch, true);
   }
   function render() {
     const r = route();
     $$(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.view === r.view));
     const main = $("#main");
-    const views = { voyage: vVoyage, log: vLog, crew: vCrew, bounties: vBounties, stats: vStats, side: vSide, helm: vSettings };
+    const views = { voyage: vVoyage, log: vLog, manga: vManga, crew: vCrew, bounties: vBounties, stats: vStats, side: vSide, helm: vSettings };
     main.innerHTML = views[r.view](r.arg);
     main.dataset.view = r.view;
     const p = progress();
@@ -408,7 +425,7 @@
       const vis = g.eps.filter(passFilter);
       if (!vis.length) return "";
       const gp = progress(g.eps), a = g.eps[0].n, b = g.eps[g.eps.length - 1].n;
-      return '<section class="arc"><div class="arc-h"><div><h3>' + esc(g.arc) + '</h3><span class="muted">Episodes ' + a + (a !== b ? "–" + b : "") + " · " + g.eps.length + " ep" + (g.eps.length > 1 ? "s" : "") + (manga(g.eps[0]) ? " · 📖 " + esc(manga(g.eps[g.eps.length - 1]).short === manga(g.eps[0]).short ? manga(g.eps[0]).short : manga(g.eps[0]).short + " → " + manga(g.eps[g.eps.length - 1]).short) : "") + "</span></div>" +
+      return '<section class="arc"><div class="arc-h"><div><h3>' + esc(g.arc) + '</h3><span class="muted">Episodes ' + a + (a !== b ? "–" + b : "") + " · " + g.eps.length + " ep" + (g.eps.length > 1 ? "s" : "") + (MG ? (chRange(epsChapters(g.eps)) ? " · 📖 " + chRange(epsChapters(g.eps)) : " · Anime-original") : manga(g.eps[0]) ? " · 📖 " + esc(manga(g.eps[0]).short) : "") + "</span></div>" +
         '<div class="arc-tools">' + bar(gp.pct, s.color) + '<span class="muted">' + gp.done + "/" + gp.total + '</span><button class="btn sm" data-act="range" data-a="' + a + '" data-b="' + b + '" data-v="' + (gp.pct >= 100 ? 0 : 1) + '">' + (gp.pct >= 100 ? "Clear arc" : "Mark arc") + "</button></div></div>" +
         '<div class="ep-list">' + vis.map(epRow).join("") + "</div></section>";
     }).join("");
@@ -443,7 +460,9 @@
       '<div class="m-actions"><button class="btn ' + (w ? "" : "primary") + '" data-act="toggle" data-ep="' + n + '">' + (w ? "✓ Watched — undo" : "Mark watched") + '</button><button class="btn" data-act="upto" data-ep="' + n + '">Mark all up to here</button><button class="btn ghost fav' + (S.favs[n] ? " on" : "") + '" data-act="fav" data-ep="' + n + '">' + (S.favs[n] ? "★ Favorite" : "☆ Favorite") + "</button></div>" +
       (w ? '<div class="m-when"><label for="watchDate">Watched on</label><input type="date" id="watchDate" data-ep="' + n + '" value="' + dayKey(S.watched[n]) + '" min="' + e.d + '" max="' + todayKey() + '">' +
         (S.bulk[n] ? '<span class="muted">Bulk-marked — set the real date and it will count toward your streaks and activity.</span>' : '<span class="muted">Change it if you watched this on another day.</span>') + "</div>" : "") +
-      (mg ? '<div class="m-sec"><div class="m-lbl">Manga</div><div>📖 ' + esc(mg.text) + "</div></div>" : "") +
+      (EP_CH[n] ? '<div class="m-sec"><div class="m-lbl">Adapts manga</div><div class="m-chs">' + EP_CH[n].map((c) => '<button class="chip-ch' + (S.read[c] ? " on" : "") + '" data-act="opench" data-ch="' + c + '"><b>Ch. ' + c + "</b>" + esc(CHN[c].t) + "</button>").join("") + "</div>" +
+        (EP_FX[n] ? '<div class="small muted" style="margin-top:6px">Also revisits (flashback/recap): ' + EP_FX[n].map((c) => '<button class="link" data-act="opench" data-ch="' + c + '">Ch. ' + c + "</button>").join(", ") + "</div>" : "") + "</div>"
+        : mg ? '<div class="m-sec"><div class="m-lbl">Manga</div><div>📖 ' + esc(mg.text) + "</div></div>" : "") +
       (ov ? '<div class="m-sec"><div class="m-lbl">Synopsis</div>' + (w || !S.settings.spoiler || UI.reveal === n ? '<p class="m-syn">' + esc(ov) + '</p><div class="tmdb small muted">Synopsis via TMDB</div>' : '<button class="btn sm ghost" data-act="reveal" data-ep="' + n + '">Reveal synopsis (may contain spoilers)</button>') + "</div>" : "") +
       '<div class="m-sec"><div class="m-lbl">Your rating</div><div class="stars">' + stars + (r ? '<button class="link" data-act="rate" data-ep="' + n + '" data-v="0">clear</button>' : "") + "</div></div>" +
       '<div class="m-sec"><div class="m-lbl">Log notes</div><textarea id="noteBox" data-ep="' + n + '" placeholder="Thoughts, favorite moments, theories…">' + esc(S.notes[n] || "") + "</textarea></div>" +
@@ -451,7 +470,99 @@
       '<div class="m-nav">' + (n > FIRST ? '<button class="btn sm" data-act="open" data-ep="' + (n - 1) + '">← ' + (n - 1) + "</button>" : "<span></span>") + '<a class="btn sm ghost" href="#log/' + s.n + '" data-act="closemodal">Season ' + s.n + "</a>" + (n < LAST ? '<button class="btn sm" data-act="open" data-ep="' + (n + 1) + '">' + (n + 1) + " →</button>" : "<span></span>") + "</div>";
     if (!keep) { modal.classList.add("open"); document.body.classList.add("noscroll"); $("#modalClose").focus({ preventScroll: true }); }
   }
-  function closeModal() { const m = $("#modal"); m.classList.remove("open"); delete m.dataset.ep; document.body.classList.remove("noscroll"); }
+  function closeModal() { const m = $("#modal"); m.classList.remove("open"); delete m.dataset.ep; delete m.dataset.ch; document.body.classList.remove("noscroll"); }
+
+  /* --------------------------------------------------------------- MANGA */
+  const maxRead = () => { let m = 0; for (const k in S.read) if (+k > m) m = +k; return m; };
+  function animeCovers() { const mw = maxWatched(); let m = 0; for (const e in EP_CH) if (+e <= mw) for (const c of EP_CH[e]) if (c > m) m = c; return m; }
+  function chapterEp(c) { const x = CHN[c]; return x && x.eps.length ? Math.max(...x.eps) : null; }
+  const lastAdapted = () => { let m = 0; CH.forEach((c) => { if (c.eps.length && c.n > m) m = c.n; }); return m; };
+
+  function vManga() {
+    if (!MG) return '<div class="page-h"><h1>Manga</h1><p class="muted">The chapter list is built by the repo\'s “Update manga data” GitHub Action. Run it once from the Actions tab and the manga tracker will appear here.</p></div>';
+    const read = Object.keys(S.read).length, mr = maxRead(), cov = animeCovers(), mw = maxWatched(), la = lastAdapted();
+    const readEq = mr ? chapterEp(mr) : null;
+    const vols = {}; CH.forEach((c) => { if (c.v) { const v = vols[c.v] = vols[c.v] || { t: 0, r: 0 }; v.t++; if (S.read[c.n]) v.r++; } });
+    const volsDone = Object.values(vols).filter((v) => v.r === v.t).length;
+    let delta;
+    if (!mr && !mw) delta = "Log some episodes or chapters and this will show how they line up.";
+    else if (mr > cov) delta = "Your reading is <b>" + (mr - cov) + " chapter" + (mr - cov === 1 ? "" : "s") + " ahead</b> of your anime." + (mr > la ? " You're past everything the anime has adapted." : "");
+    else if (cov > mr) delta = "Your anime is <b>" + (cov - mr) + " chapter" + (cov - mr === 1 ? "" : "s") + " ahead</b> of your reading.";
+    else delta = "Your anime and manga are <b>perfectly in sync</b>.";
+    const tiles = [
+      ["Chapters read", fmt(read), "of " + fmt(LAST_CH) + " released · " + pct(read, LAST_CH) + "%"],
+      ["Volumes complete", volsDone, "of " + Object.keys(vols).length + " collected volumes"],
+      ["Your anime covers", cov ? "Ch. " + cov : "—", mw ? "through Episode " + mw : "no episodes logged"],
+      ["Your manga equals", mr ? (readEq ? "Ep. " + readEq : "Beyond anime") : "—", mr ? "through Chapter " + mr : "no chapters logged"],
+      ["Anime has adapted", "Ch. " + la, fmt(LAST_CH - la) + " chapters not animated yet"]
+    ].map(([k, v, x]) => '<div class="tile"><div class="tile-k">' + k + '</div><div class="tile-v">' + v + '</div><div class="tile-s">' + x + "</div></div>").join("");
+    const sync = '<section class="card sync"><div class="card-h"><h2>Anime ↔ Manga</h2><span class="muted">every episode plotted against the chapters it adapts</span></div>' +
+      '<p class="sync-msg">' + delta + "</p>" + corrChart(mw, mr) +
+      '<div class="row" style="margin-top:12px"><button class="btn primary" data-act="syncRead"' + (cov ? "" : " disabled") + '>Mark chapters my anime covers as read</button>' +
+      (mr && mr < LAST_CH ? '<button class="btn" data-act="opench" data-ch="' + (mr + 1) + '">Next chapter: ' + (mr + 1) + " →</button>" : !mr && cov ? '<button class="btn" data-act="opench" data-ch="' + Math.min(cov + 1, LAST_CH) + '">Continue the story in the manga: Ch. ' + Math.min(cov + 1, LAST_CH) + " →</button>" : "") + "</div></section>";
+    const pace = '<section class="card"><div class="card-h"><h2>Adaptation pace</h2><span class="muted">manga chapters per episode, by season</span></div>' + paceChart() + "</section>";
+    // chapter list grouped by manga arc
+    const q = UI.chQ.trim().toLowerCase(), nextUnread = (CH.find((c) => !S.read[c.n]) || CH[CH.length - 1]).n;
+    const groups = MARCS.map((r) => ({ r, chs: CH.filter((c) => c.n >= r.a && c.n <= r.b) })).filter((g) => g.chs.length);
+    const list = groups.map((g) => {
+      let chs = g.chs;
+      if (q) chs = chs.filter((c) => String(c.n) === q || c.t.toLowerCase().includes(q));
+      if (UI.hideRead) chs = chs.filter((c) => !S.read[c.n]);
+      if (!chs.length) return "";
+      const rd = g.chs.filter((c) => S.read[c.n]).length, a = g.chs[0].n, b = g.chs[g.chs.length - 1].n;
+      const open = q || (UI.openArcs[g.r.name] != null ? UI.openArcs[g.r.name] : nextUnread >= a && nextUnread <= b);
+      const epsA = g.chs.flatMap((c) => c.eps);
+      return '<details class="marc"' + (open ? " open" : "") + ' data-marc="' + esc(g.r.name) + '"><summary><div><h3>' + esc(g.r.name) + '</h3><span class="muted">Chapters ' + a + "–" + b + (g.chs[0].v ? " · Vol. " + g.chs[0].v + (g.chs[g.chs.length - 1].v && g.chs[g.chs.length - 1].v !== g.chs[0].v ? "–" + g.chs[g.chs.length - 1].v : "") : "") + (epsA.length ? " · Episodes " + Math.min(...epsA) + "–" + Math.max(...epsA) : " · not animated yet") + "</span></div>" +
+        '<div class="arc-tools">' + bar(pct(rd, g.chs.length)) + '<span class="muted">' + rd + "/" + g.chs.length + "</span></div></summary>" +
+        '<div class="ep-list">' + chs.map(chRow).join("") + "</div></details>";
+    }).join("");
+    return '<div class="page-h"><h1>The Manga</h1><p class="muted">Every released chapter of Eiichiro Oda\'s manga, tracked separately from the anime and mapped to the episodes that adapt it.</p></div>' +
+      '<section class="tiles tiles5">' + tiles + "</section>" + sync + pace +
+      '<div class="filterbar"><input id="chSearch" class="search" type="search" placeholder="Search chapter titles or a number…" value="' + esc(UI.chQ) + '"><div class="chips"><label class="tog"><input type="checkbox" data-act="rhide"' + (UI.hideRead ? " checked" : "") + '> Hide read</label>' +
+      '<input id="readUpTo" class="mini-num" type="number" min="1" max="' + LAST_CH + '" placeholder="Ch. #"><button class="btn sm" data-act="ruptoInput">Read 1 → N</button></div></div>' +
+      (list || '<p class="muted center">No chapters match.</p>') +
+      '<p class="muted small">Chapter titles, volumes, release dates and the page-level chapter↔episode mapping come from the <a href="https://onepiece.fandom.com/" target="_blank" rel="noopener">One Piece Wiki</a> (CC BY-SA), refreshed weekly' + (MG.updated ? " · last update " + niceDate(MG.updated) : "") + ".</p>";
+  }
+  function chRow(c) {
+    const r = !!S.read[c.n];
+    const eps = c.eps.length ? '<button class="ch-eps" data-act="open" data-ep="' + c.eps[0] + '">Ep ' + (c.eps.length > 1 ? c.eps[0] + "–" + c.eps[c.eps.length - 1] : c.eps[0]) + (c.eps.every((e) => isW(e)) ? " ✓" : "") + "</button>" : '<span class="ch-eps none">Not animated</span>';
+    return '<div class="ep-row ch-row' + (r ? " is-w" : "") + '"><button class="chk" data-act="rtoggle" data-ch="' + c.n + '" aria-pressed="' + r + '" aria-label="Mark chapter ' + c.n + ' read"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"/></svg></button>' +
+      '<span class="ep-num">' + c.n + '</span><button class="ep-title" data-act="opench" data-ch="' + c.n + '">' + esc(c.t || "Chapter " + c.n) + "</button>" +
+      '<span class="ep-date">' + (c.v ? "Vol. " + c.v + " · " : "") + (c.d ? niceDate(c.d) : "") + "</span>" + eps + "</div>";
+  }
+  function openCh(n, keep) {
+    const c = CHN[n]; if (!c) return;
+    const r = !!S.read[n], modal = $("#modal");
+    delete modal.dataset.ep; modal.dataset.ch = n;
+    $("#modalBody").innerHTML = '<div class="m-head" style="--accent:#f2b632"><div class="m-kicker">Manga · ' + esc(chArc(n)) + " arc" + (c.v ? " · Volume " + c.v : "") + '</div><div class="m-num">Chapter ' + n + "</div><h2>" + esc(c.t || "Chapter " + n) + '</h2><div class="m-meta">' + (c.d ? "<span>Released " + niceDate(c.d) + " (" + ago(c.d) + ")</span>" : "") + "</div></div>" +
+      '<div class="m-actions"><button class="btn ' + (r ? "" : "primary") + '" data-act="rtoggle" data-ch="' + n + '">' + (r ? "✓ Read — undo" : "Mark read") + '</button><button class="btn" data-act="rupto" data-ch="' + n + '">Mark all up to here</button></div>' +
+      (r ? '<div class="m-when"><label for="readDate">Read on</label><input type="date" id="readDate" data-ch="' + n + '" value="' + dayKey(S.read[n]) + '" min="' + (c.d || "1997-07-19") + '" max="' + todayKey() + '">' + (S.readBulk[n] ? '<span class="muted">Bulk-marked — set the real date if you know it.</span>' : "") + "</div>" : "") +
+      '<div class="m-sec"><div class="m-lbl">Animated in</div>' + (c.eps.length ? '<div class="m-chs">' + c.eps.map((e) => '<button class="chip-ch' + (isW(e) ? " on" : "") + '" data-act="open" data-ep="' + e + '"><b>Ep. ' + e + "</b>" + (S.settings.spoiler && !isW(e) && e > maxWatched() + 1 ? "<i>title hidden</i>" : esc(EPN[e] ? EPN[e].t : "")) + "</button>").join("") + "</div>" : '<p class="muted">Not animated yet — this chapter is ahead of the anime.</p>') +
+      (c.fx.length ? '<div class="small muted" style="margin-top:6px">Revisited in flashbacks/recaps: ' + c.fx.map((e) => '<button class="link" data-act="open" data-ep="' + e + '">Ep. ' + e + "</button>").join(", ") + "</div>" : "") + "</div>" +
+      '<div class="m-nav">' + (CHN[n - 1] ? '<button class="btn sm" data-act="opench" data-ch="' + (n - 1) + '">← Ch. ' + (n - 1) + "</button>" : "<span></span>") + '<a class="btn sm ghost" href="#manga" data-act="closemodal">All chapters</a>' + (CHN[n + 1] ? '<button class="btn sm" data-act="opench" data-ch="' + (n + 1) + '">Ch. ' + (n + 1) + " →</button>" : "<span></span>") + "</div>";
+    if (!keep) { modal.classList.add("open"); document.body.classList.add("noscroll"); }
+  }
+  function corrChart(mw, mr) {
+    const W = 860, H = 300, L = 46, B = 30, T = 14, Rr = 14;
+    const pts = []; let run = 0;
+    EP.forEach((e) => { const c = EP_CH[e.n]; if (c) run = Math.max(run, ...c); if (run) pts.push([e.n, run]); });
+    const xmax = LAST, ymax = Math.max(LAST_CH, 1);
+    const x = (v) => L + (v / xmax) * (W - L - Rr), y = (v) => H - B - (v / ymax) * (H - B - T);
+    let svg = '<div class="map-scroll"><svg class="chart corr" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Anime episodes plotted against manga chapters">';
+    for (let i = 0; i <= 4; i++) { const v = Math.round(ymax * i / 4); svg += '<line x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(v) + '" y2="' + y(v) + '" class="grid"/><text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end" class="ax">' + v + "</text>"; }
+    M.SEASONS.forEach((s, i) => { if (i % 3 === 0 || s.n === 22) svg += '<line x1="' + x(s.start) + '" x2="' + x(s.start) + '" y1="' + T + '" y2="' + (H - B) + '" class="grid"/><text x="' + x(s.start) + '" y="' + (H - 10) + '" text-anchor="middle" class="ax">Ep ' + s.start + "</text>"; });
+    if (mw) svg += '<rect x="' + L + '" y="' + T + '" width="' + (x(mw) - L) + '" height="' + (H - B - T) + '" class="corr-w"/>';
+    if (mr) svg += '<rect x="' + L + '" y="' + y(mr) + '" width="' + (W - Rr - L) + '" height="' + (H - B - y(mr)) + '" class="corr-r"/>';
+    svg += '<polyline fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-linejoin="round" points="' + pts.filter((p, i) => i % 2 === 0 || i === pts.length - 1).map((p) => x(p[0]).toFixed(1) + "," + y(p[1]).toFixed(1)).join(" ") + '"/>';
+    if (mw) { const cy = animeCovers(); svg += '<line x1="' + x(mw) + '" x2="' + x(mw) + '" y1="' + T + '" y2="' + (H - B) + '" class="corr-lw"/><circle cx="' + x(mw) + '" cy="' + y(cy) + '" r="5" class="corr-dw"><title>Your anime: Ep ' + mw + " ≈ Ch. " + cy + '</title></circle><text x="' + (x(mw) + 6) + '" y="' + (T + 12) + '" class="ax corr-tw">You (anime) · Ep ' + mw + "</text>"; }
+    if (mr) svg += '<line x1="' + L + '" x2="' + (W - Rr) + '" y1="' + y(mr) + '" y2="' + y(mr) + '" class="corr-lr"/><text x="' + (L + 6) + '" y="' + (y(mr) - 6) + '" class="ax corr-tr">You (manga) · Ch. ' + mr + "</text>";
+    return svg + '</svg></div><div class="legend"><i class="lg-line"></i><span>Chapters adapted so far</span><i class="lg-w2"></i><span>Watched</span><i class="lg-r2"></i><span>Read</span></div>';
+  }
+  function paceChart() {
+    const rows = M.SEASONS.map((s) => { const chs = new Set(epsChapters(s.eps)); return { s, v: chs.size / s.eps.length, chs: chs.size }; });
+    const max = Math.max(...rows.map((r) => r.v), 0.1);
+    return '<div class="sbars">' + rows.map((r) => '<a class="sbar" href="#log/' + r.s.n + '"><span class="sb-n">S' + r.s.n + '</span><span class="sb-t">' + esc(r.s.short) + "</span>" + bar(r.v / max * 100, r.s.color) + '<span class="sb-p">' + r.v.toFixed(2) + '</span><span class="sb-r">' + r.chs + " ch</span></a>").join("") + '</div><p class="muted small">Lower numbers mean slower pacing: fewer chapters per episode.</p>';
+  }
 
   /* ---------------------------------------------------------------- CREW */
   const locked = (c) => S.settings.spoiler && maxWatched() < c.ep;
@@ -516,7 +627,7 @@
     const poster = '<section class="mywanted"><div class="mw-poster"><div class="mw-top">WANTED</div><div class="mw-photo"><span>' + esc(initials(S.settings.name || "R")) + '</span></div><div class="mw-dead">DEAD OR ALIVE</div><div class="mw-name">' + esc((S.settings.name || "Rookie Pirate").toUpperCase()) + '</div><div class="mw-bounty"><span>' + BERRY + "</span>" + fmt(tb) + '<em>-</em></div><div class="mw-marine">GRAND LINE LOGBOOK</div></div>' +
       '<div class="mw-info"><div class="mw-rank">' + rankFor(tb) + '</div><h1>Bounty Board</h1><p class="muted">Every milestone raises your bounty. ' + earned + " of " + res.length + ' bounties claimed.</p>' + bar(pct(earned, res.length)) +
       '<p class="muted small">Ranks: Stowaway → Rookie → Supernova (' + shortBounty(5e7) + ") → Worst Generation (" + shortBounty(2e8) + ") → Warlord (" + shortBounty(8e8) + ") → Emperor (" + shortBounty(2e9) + ") → King of the Pirates (" + shortBounty(4e9) + ').</p><a class="btn sm" href="#helm">Change poster name</a></div></section>';
-    const cats = [["Milestones", (a) => /^(first|count|allaired|ep1000|caughtup|timeskip|merry)/.test(a.id)], ["Seasons", (a) => a.id.startsWith("season")], ["Crew", (a) => a.id.startsWith("crew-")], ["Habits", (a) => /^(streak|binge|night|rate|notes|favs|filler|canon)/.test(a.id)], ["Side Voyages", (a) => /^(la\d|films)/.test(a.id)]];
+    const cats = [["Milestones", (a) => /^(first|count|allaired|ep1000|caughtup|timeskip|merry)/.test(a.id)], ["Seasons", (a) => a.id.startsWith("season")], ["Crew", (a) => a.id.startsWith("crew-")], ["Habits", (a) => /^(streak|binge|night|rate|notes|favs|filler|canon)/.test(a.id)], ["Manga", (a) => /^read/.test(a.id)], ["Side Voyages", (a) => /^(la\d|films)/.test(a.id)]];
     const grid = cats.map(([name, f]) => '<section><h2 class="cat-h">' + name + '</h2><div class="ach-grid">' + res.filter(f).map((a) => {
       const secret = a.hidden && !a.done;
       return '<div class="ach' + (a.done ? " got" : "") + '"><div class="ach-ico">' + (secret ? "❔" : a.icon) + '</div><div class="ach-body"><div class="ach-name">' + (secret ? "Secret bounty" : esc(a.name)) + '</div><div class="ach-desc">' + (secret ? "Keep sailing to reveal this one." : esc(a.desc)) + "</div>" +
@@ -694,6 +805,22 @@
       case "side": { const k = t.dataset.k; if (S.side[k]) delete S.side[k]; else S.side[k] = Date.now(); commit(); break; }
       case "closemodal": closeModal(); break;
       case "reveal": UI.reveal = n; openEp(n, true); break;
+      case "opench": ev.preventDefault(); openCh(+t.dataset.ch); break;
+      case "rtoggle": { const c = +t.dataset.ch; if (S.read[c]) { delete S.read[c]; delete S.readBulk[c]; } else S.read[c] = Date.now(); commit(); break; }
+      case "rupto": {
+        const c = +t.dataset.ch, missing = CH.filter((x) => x.n <= c && !S.read[x.n]).length;
+        if (!missing) { toast("Everything up to chapter " + c + " is already read"); break; }
+        confirmBox("Mark " + missing + " chapter" + (missing > 1 ? "s" : "") + " up to #" + c + " as read?", () => { const ts = Date.now(); CH.forEach((x) => { if (x.n <= c && !S.read[x.n]) { S.read[x.n] = ts; S.readBulk[x.n] = 1; } }); commit(); toast("Marked " + missing + " chapters read"); });
+        break;
+      }
+      case "ruptoInput": { const v = +$("#readUpTo").value; if (v >= 1 && v <= LAST_CH) { const missing = CH.filter((x) => x.n <= v && !S.read[x.n]).length; confirmBox("Mark chapters 1–" + v + " read? (" + missing + " new)", () => { const ts = Date.now(); CH.forEach((x) => { if (x.n <= v && !S.read[x.n]) { S.read[x.n] = ts; S.readBulk[x.n] = 1; } }); commit(); }); } else toast("Enter a chapter between 1 and " + LAST_CH); break; }
+      case "syncRead": {
+        const cov = animeCovers(), missing = CH.filter((x) => x.n <= cov && !S.read[x.n]).length;
+        if (!missing) { toast("Already in sync"); break; }
+        confirmBox("Mark the " + missing + " chapters your watched episodes cover (through Ch. " + cov + ") as read?", () => { const ts = Date.now(); CH.forEach((x) => { if (x.n <= cov && !S.read[x.n]) { S.read[x.n] = ts; S.readBulk[x.n] = 1; } }); commit(); });
+        break;
+      }
+      case "rhide": UI.hideRead = !UI.hideRead; rerender(); break;
       case "uptoInput": { const v = +$("#uptoN").value; if (v >= 1 && v <= LAST) { const missing = EP.filter((e) => e.n <= v && !isW(e.n)).length; confirmBox("Mark episodes 1–" + v + " watched? (" + missing + " new)", () => { markRange(FIRST, v, true); toast("Welcome aboard — logged through episode " + v); }); } else toast("Enter an episode between 1 and " + LAST); break; }
       case "export": exportData(); break;
       case "reset": confirmBox("Really erase all progress? This cannot be undone (export a backup first!).", () => { S = DEFAULT(); save(); rerender(); toast("Log wiped. A fresh voyage begins."); }, "Erase everything"); break;
@@ -716,6 +843,12 @@
     else if (t.id === "setMotion") st.reduceMotion = t.checked;
     else if (t.id === "setArt") st.art = t.checked;
     else if (t.id === "importFile") { importData(t.files[0]); return; }
+    else if (t.id === "readDate") {
+      const c = +t.dataset.ch, v = t.value;
+      if (!S.read[c] || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+      if (v > todayKey()) { toast("That date is in the future"); t.value = dayKey(S.read[c]); return; }
+      const d = new Date(v + "T20:00:00"); S.read[c] = d.getTime(); delete S.readBulk[c]; commit(); toast("Chapter " + c + " dated " + niceDate(v)); return;
+    }
     else if (t.id === "watchDate") {
       const n = +t.dataset.ep, v = t.value;
       if (!isW(n) || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
@@ -733,10 +866,12 @@
     commit(true);
     toast("Settings saved");
   });
+  document.addEventListener("toggle", (ev) => { const d = ev.target; if (d.dataset && d.dataset.marc) UI.openArcs[d.dataset.marc] = d.open; }, true);
   let qTimer;
   document.addEventListener("input", (ev) => {
     const t = ev.target;
     if (t.id === "logSearch") { clearTimeout(qTimer); qTimer = setTimeout(() => { UI.q = t.value; UI._focusSearch = true; rerender(); UI._focusSearch = false; const i = $("#logSearch"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 220); }
+    if (t.id === "chSearch") { clearTimeout(qTimer); qTimer = setTimeout(() => { UI.chQ = t.value; rerender(); const i = $("#chSearch"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 250); }
     if (t.id === "crewSearch") { clearTimeout(qTimer); qTimer = setTimeout(() => { UI.crewQ = t.value; rerender(); const i = $("#crewSearch"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 220); }
     if (t.id === "noteBox") { const n = +t.dataset.ep, v = t.value; if (v.trim()) S.notes[n] = v; else delete S.notes[n]; save(); clearTimeout(t._nt); t._nt = setTimeout(() => checkAch(), 600); }
   });
