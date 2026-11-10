@@ -102,7 +102,19 @@ def main():
     for d, nums in by_date_o.items():
         for n, e in zip(sorted(nums), by_date_t.get(d, [])):
             match[n] = e
-    print(f"matched {len(match)} of {len(ours)} episodes by air date")
+    # fallback: TMDB lists the same episodes in the same order, so use position when dates differ slightly
+    used = {id(e) for e in match.values()}
+    for i, (n, t, d) in enumerate(ours):
+        if n in match or i >= len(tmdb):
+            continue
+        e = tmdb[i]
+        if id(e) in used or not e["date"] or not d:
+            continue
+        gap = abs((dt.date.fromisoformat(e["date"]) - dt.date.fromisoformat(d)).days)
+        if gap <= 14:
+            match[n] = e
+            used.add(id(e))
+    print(f"matched {len(match)} of {len(ours)} episodes (air date, then position)")
 
     # --- new aired episodes after our last one
     last_n, last_d = ours[-1][0], ours[-1][2]
