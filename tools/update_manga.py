@@ -169,7 +169,8 @@ def split_main(eps):
     """Separate the main adaptation from later flashbacks/recaps: keep episodes near the one with the most pages."""
     if not eps:
         return [], []
-    best = max(eps, key=lambda x: (x[1], -x[0]))[0]
+    top = max(p for _, p in eps)
+    best = min(e for e, p in eps if p >= max(3, top * 0.3))  # earliest substantial adaptation
     main = sorted({e for e, _ in eps if abs(e - best) <= 6})
     extra = sorted({e for e, _ in eps if abs(e - best) > 6})
     return main, extra
