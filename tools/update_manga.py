@@ -136,7 +136,7 @@ def main():
             misses = 0
             box = infobox(t)
             if probe and k in (1, 1000):
-                print(f"--- Chapter {k} fields:", json.dumps(box, ensure_ascii=False)[:1500])
+                print(f"--- Chapter {k} raw:", json.dumps(t[:3000], ensure_ascii=False))
             title = clean(pick(box, "ename", "title", "eng", "english"))
             vol = ints(pick(box, "vol", "volume"), 300)
             date = clean(pick(box, "date", "release", "released"))
@@ -158,8 +158,8 @@ def main():
             if not t:
                 continue
             box = infobox(t)
-            if probe and k in (1, 1000):
-                print(f"--- Episode {k} fields:", json.dumps(box, ensure_ascii=False)[:1500])
+            if probe and k in (1, 30):
+                print(f"--- Episode {k} raw:", json.dumps(t[:3500], ensure_ascii=False))
             chs = ints(pick(box, "chapter", "chapters", "adapted", "manga"), hi)
             if chs:
                 ep_map[k] = chs
