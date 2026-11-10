@@ -27,7 +27,7 @@ jobs:
         run: python tools/update_data.py
       - name: Commit changes
         run: |
-          if git diff --quiet; then echo "No changes."; exit 0; fi
+          if [ -z "$(git status --porcelain js)" ]; then echo "No changes."; exit 0; fi
           git config user.name "grand-line-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add js/episodes.js js/upcoming.js js/art.js
