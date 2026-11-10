@@ -118,8 +118,20 @@ def pick(box, *keys):
     return ""
 
 
+def explore():
+    for t, txt in fetch_pages(["Template:Chapter Box", "Template:Episode Box"]).items():
+        if t.startswith("Template"):
+            print(f"=== {t}:", json.dumps(txt[:2500], ensure_ascii=False))
+    d = api(action="query", list="allpages", apnamespace="828", aplimit="500")
+    names = [p["title"] for p in d.get("query", {}).get("allpages", [])]
+    print("=== modules:", json.dumps(names, ensure_ascii=False))
+
+
 def main():
     probe = "--probe" in sys.argv
+    if probe:
+        explore()
+        return
     eps_txt = open(EPISODES_JS, encoding="utf-8").read()
     last_ep = max(int(n) for n in re.findall(r"\[(\d+),\"", eps_txt))
 
