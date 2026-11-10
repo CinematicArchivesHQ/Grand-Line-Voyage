@@ -1,0 +1,35 @@
+name: Update episode data & artwork
+
+on:
+  schedule:
+    - cron: "37 11 * * *"   # daily, 11:37 UTC (Sunday-night JP broadcasts land on TMDB by Monday)
+  workflow_dispatch:         # "Run workflow" button in the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Pull latest from TMDB
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          TMDB_TOKEN: ${{ secrets.TMDB_TOKEN }}
+        run: python tools/update_data.py
+      - name: Commit changes
+        run: |
+          if git diff --quiet; then echo "No changes."; exit 0; fi
+          git config user.name "grand-line-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add js/episodes.js js/upcoming.js js/art.js
+          git commit -m "Update episode data from TMDB ($(date -u +%Y-%m-%d))"
+          git push
