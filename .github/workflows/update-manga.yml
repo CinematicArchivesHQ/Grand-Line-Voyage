@@ -1,0 +1,38 @@
+name: Update manga data
+
+on:
+  schedule:
+    - cron: "23 12 * * 1"   # weekly, Monday 12:23 UTC (after Sunday-night chapter releases)
+  workflow_dispatch:
+    inputs:
+      probe:
+        description: "Debug: print raw wiki fields instead of writing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build chapter list and episode mapping
+        run: python tools/update_manga.py ${{ inputs.probe && '--probe' || '' }}
+      - name: Commit changes
+        run: |
+          if git diff --quiet; then echo "No changes."; exit 0; fi
+          git config user.name "grand-line-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add js/manga.js
+          git commit -m "Update manga data from the One Piece Wiki ($(date -u +%Y-%m-%d))"
+          git pull --rebase origin main
+          git push
