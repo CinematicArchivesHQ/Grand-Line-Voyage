@@ -307,7 +307,7 @@
     el.innerHTML = html;
     box.appendChild(el);
     requestAnimationFrame(() => el.classList.add("in"));
-    setTimeout(() => { el.classList.remove("in"); setTimeout(() => el.remove(), 400); }, cls.includes("ach") ? 5200 : 2600);
+    setTimeout(() => { el.classList.remove("in"); setTimeout(() => el.remove(), 400); }, cls.includes("ach") ? 5200 : cls.includes("upd") ? 12000 : 2600);
   }
   function toastAch(a) {
     toast('<div class="t-wanted">NEW BOUNTY</div><div class="t-ico">' + a.icon + '</div><div><b>' + esc(a.name) + "</b><br><span>+" + bounty(a.b) + "</span></div>", "ach");
@@ -954,11 +954,58 @@
       '<label class="tog block"><input type="checkbox" id="setSpoil"' + (st.spoiler ? " checked" : "") + "> Spoiler shield (hide characters &amp; crew until their debut)</label>" +
       '<label class="tog block"><input type="checkbox" id="setArt"' + (st.art ? " checked" : "") + "> Show artwork from TMDB (episode stills respect the spoiler shield)</label>" +
       '<label class="tog block"><input type="checkbox" id="setMotion"' + (st.reduceMotion ? " checked" : "") + "> Reduce motion (skip the loading voyage)</label></section>" +
+      '<section class="card update-card" id="updateCard">' + updatePanel() + "</section>" +
       '<section class="card cloud-card" id="cloudCard">' + (window.GLLCloud ? window.GLLCloud.panelHTML() : '<div class="card-h"><h2>Cloud sync</h2></div><p class="muted">Loading…</p>') + "</section>" +
       '<section class="card"><div class="card-h"><h2>Backup</h2></div><p class="muted">Download your full log (episodes, ratings, notes, bounties) as a JSON file, or restore one.</p>' +
       '<div class="row"><button class="btn primary" data-act="export">Export backup</button><label class="btn">Restore backup<input type="file" id="importFile" accept="application/json,.json" hidden></label></div>' +
       '<div class="danger"><h3>Danger zone</h3><p class="muted small">Erase every log entry, rating, note and bounty from this browser.</p><button class="btn danger-btn" data-act="reset">Reset everything</button></div></section></div>' +
       '<section class="card about"><div class="card-h"><h2>About</h2></div><p>Grand Line Voyage is an unofficial, fan-made tracker from <b>CinematicArchivesHQ</b>. No episodes are hosted or streamed here. Episode titles and Japanese air dates are compiled from public episode lists; arc groupings, filler classification and character debut episodes follow common fan conventions and may differ slightly from other guides. ONE PIECE © Eiichiro Oda / Shueisha, Toei Animation.</p></section>';
+  }
+
+  /* ------------------------------------------------------------ updates */
+  // Version = the ?v= stamp on js/app.js in index.html. Updating re-downloads every file with cache:"reload"
+  // (refreshing the browser/home-screen app's saved copies), then reloads. Progress lives in localStorage + cloud.
+  const BUILD = ((document.querySelector('script[src*="js/app.js"]') || {}).src || "").split("v=")[1] || "dev";
+  const UPD = { latest: null, checked: 0, busy: false, error: null };
+  const standalone = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  async function checkForUpdate(manual) {
+    if (UPD.busy || (!manual && Date.now() - UPD.checked < 10 * 60000)) return;
+    UPD.busy = true; UPD.error = null; paintUpdate();
+    try {
+      const r = await fetch("index.html?check=" + Date.now(), { cache: "no-store" });
+      const m = (await r.text()).match(/js\/app\.js\?v=([^"']+)/);
+      UPD.latest = m ? m[1] : null; UPD.checked = Date.now();
+      if (UPD.latest && UPD.latest !== BUILD && !manual) toast('<div><b>Update available</b><br><span class="muted small">A newer Grand Line Voyage is ready.</span></div><button class="btn sm primary" data-act="appUpdate">Update now</button>', "upd");
+      if (manual) toast(UPD.latest && UPD.latest !== BUILD ? "Update available — tap “Update now”" : "You're on the latest version");
+    } catch (e) { UPD.error = "Couldn't reach the site — are you offline?"; if (manual) toast(UPD.error); }
+    UPD.busy = false; paintUpdate();
+  }
+  function updatePanel() {
+    const avail = UPD.latest && UPD.latest !== BUILD;
+    return '<div class="card-h"><h2>App updates</h2>' + (avail ? '<span class="cloud-badge syncing">Update ready</span>' : UPD.latest ? '<span class="cloud-badge synced">Up to date</span>' : "") + "</div>" +
+      '<p class="muted">Pull the newest version of Grand Line Voyage — including into the ' + (standalone() ? "home-screen app you're using now" : "Home Screen web app") + ' — without deleting and re-adding it. Your progress is kept.</p>' +
+      '<p class="small muted">Installed: <code>' + esc(BUILD) + "</code>" + (UPD.latest ? " · Latest: <code>" + esc(UPD.latest) + "</code>" : "") + (UPD.checked ? " · checked " + new Date(UPD.checked).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "") + "</p>" +
+      (UPD.error ? '<p class="cloud-err">' + esc(UPD.error) + "</p>" : "") +
+      '<div class="row"><button class="btn primary" data-act="appUpdate">' + (avail ? "Update now" : "Update &amp; reload") + '</button><button class="btn" data-act="appCheck"' + (UPD.busy ? " disabled" : "") + ">" + (UPD.busy ? "Checking…" : "Check for updates") + "</button></div>";
+  }
+  function paintUpdate() { const c = $("#updateCard"); if (c) c.innerHTML = updatePanel(); }
+  async function applyUpdate() {
+    if (UPD.applying) return; UPD.applying = true;
+    toast("Updating… hang tight");
+    try {
+      save();
+      if (window.GLLCloud && window.GLLCloud.flush) await Promise.race([window.GLLCloud.flush(), new Promise((r) => setTimeout(r, 3000))]);
+      const base = location.href.split("#")[0].split("?")[0];
+      const urls = new Set([base, new URL("index.html", base).href, new URL("manifest.webmanifest", base).href]);
+      const fresh = await fetch(new URL("index.html", base).href, { cache: "reload" }).then((r) => r.text()).catch(() => "");
+      const add = (u) => { try { const h = new URL(u, base).href; if (h.startsWith(location.origin)) urls.add(h); } catch (e) {} };
+      $$('script[src], link[href]').forEach((el) => add(el.getAttribute("src") || el.getAttribute("href")));
+      for (const m of fresh.matchAll(/(?:src|href)="([^"]+)"/g)) add(m[1]);
+      await Promise.allSettled([...urls].map((u) => fetch(u, { cache: "reload" })));
+      if (window.caches && caches.keys) { const ks = await caches.keys(); await Promise.all(ks.map((k) => caches.delete(k))); }
+    } catch (e) { console.warn(e); }
+    const hash = location.hash || "#voyage";
+    location.replace(location.pathname + "?u=" + Date.now() + hash);
   }
 
   /* ------------------------------------------------------------- events */
@@ -1019,6 +1066,8 @@
       case "reset": confirmBox("Really erase all progress? This cannot be undone (export a backup first!).", () => { S = DEFAULT(); save(); rerender(); toast("Log wiped. A fresh voyage begins."); }, "Erase everything"); break;
       case "cb-yes": { const f = confirmBox._fn; closeConfirm(); if (f) f(); break; }
       case "cb-no": closeConfirm(); break;
+      case "appUpdate": applyUpdate(); break;
+      case "appCheck": checkForUpdate(true); break;
       default: if (act.startsWith("cloud-") && window.GLLCloud) window.GLLCloud.action(act, t);
     }
   });
@@ -1190,6 +1239,8 @@
   checkAch(true);
   render();
   runLoader();
+  setTimeout(() => checkForUpdate(false), 4000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") checkForUpdate(false); });
   window.GLL = {
     S: () => S, EP, CHARS, ACH, evalAch, toast, normalize, rerender, view: () => route().view,
     isEmpty: (d) => !d || (!Object.keys(d.watched || {}).length && !Object.keys(d.read || {}).length && !Object.keys(d.side || {}).length && !Object.keys(d.ratings || {}).length),

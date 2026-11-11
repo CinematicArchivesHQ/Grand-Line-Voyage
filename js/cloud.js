@@ -215,6 +215,6 @@ async function boot() {
   } catch (e) { C.state = "error"; fail(e); }
 }
 
-window.GLLCloud = { panelHTML, action };
+window.GLLCloud = { panelHTML, action, flush: async () => { if (ref && C.pending) await push(false); } };
 if (window.GLL) boot(); else window.addEventListener("gll-ready", boot, { once: true });
 paint();
