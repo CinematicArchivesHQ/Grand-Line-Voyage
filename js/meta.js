@@ -338,6 +338,9 @@ window.OP_META = (function () {
     C(1169, "gaban", "Scopper Gaban", "the Mountain-Eater", "Legend", "Roger Pirates", "", "A legendary member of the Roger Pirates, long hidden among the giants.")
   ];
 
+  const SIDE_FILMS = ["One Piece: The Movie", "Clockwork Island Adventure", "Chopper's Kingdom on the Island of Strange Animals", "Dead End Adventure", "The Cursed Holy Sword",
+    "Baron Omatsuri and the Secret Island", "The Giant Mechanical Soldier of Karakuri Castle", "Episode of Alabasta: The Desert Princess and the Pirates",
+    "Episode of Chopper Plus: Bloom in the Winter, Miracle Cherry Blossom", "Strong World", "Straw Hat Chase", "Film Z", "Film Gold", "Stampede", "Film Red"];
   // Non-canon side voyages (do NOT count toward 1999-series completion).
   const SIDE = [
     { id: "la", title: "Live Action (Netflix)", note: "Netflix's live-action adaptation. A separate continuity — not part of the 1999 anime.", items: [
@@ -385,5 +388,50 @@ window.OP_META = (function () {
     { name: "JustWatch", note: "Check what's available in your country right now.", url: "https://www.justwatch.com/us/tv-show/one-piece" }
   ];
 
-  return { MANGA, ONE_TO_ONE, MANGA_NOTE, STREAMING, SEASONS, ARCS, FILLER, MIXED, RECAP, HIGHLIGHTS, CREW_JOINS, CHARACTERS, SIDE };
+
+  /* Community watch order for extras (adapted from a first-timer-safe r/OnePiece guide).
+     Each block plays after episode `after`. Numbers inside `seq` are episodes the guide moves to that spot;
+     objects are extras. Movies point at the film checkboxes in Side Voyages ("films:N"). */
+  const X = (type, id, title, note) => ({ type, id, title, note: note || "" });
+  const MOV = (n, note) => ({ type: "movie", id: "films:" + n, title: "Movie " + n + ": " + SIDE_FILMS[n - 1], note: note || "" });
+  const COVER = (id, title, note) => X("cover", id, title + " (cover story)", note || "Manga cover-page mini-story — read it on the chapter title pages.");
+  const WATCH_ORDER = [
+    { after: 8, seq: [X("ova", "ganzack", "OVA: Defeat Him! The Pirate Ganzack!", "1998 Jump festival short made before the TV series.")] },
+    { after: 18, seq: [MOV(1)] },
+    { after: 53, seq: [X("special", "sp1", "TV Special 1: Adventure in the Ocean's Navel"), X("short", "jango-dance", "Short: Jango's Dance Carnival"), MOV(2)] },
+    { after: 91, seq: [MOV(3)] },
+    { after: 92, seq: [X("short", "soccer", "Short: Dream Soccer King"), COVER("cs-jango", "Jango")] },
+    { after: 138, seq: [MOV(4), X("special", "sp2", "TV Special 2: Open Upon the Great Sea! A Father's Huge, HUGE Dream!"), COVER("cs-hatchan", "Hatchan")] },
+    { after: 195, seq: [COVER("cs-wapol", "Wapol")] },
+    { after: 206, seq: [COVER("cs-ace", "Ace")] },
+    { after: 219, seq: [X("special", "sp3", "TV Special 3: Protect! The Last Great Performance"), X("short", "baseball", "Short: Take Aim! The Pirate Baseball King"), MOV(5)] },
+    { after: 224, seq: [MOV(6), MOV(7), COVER("cs-gedatsu", "Gedatsu")] },
+    { after: 325, seq: [COVER("cs-baroque", "Baroque Works")] },
+    { after: 384, seq: [X("ova", "monsters", "OVA: Monsters", "Based on a one-shot Oda drew before One Piece; it ties into the story."), X("ova", "romance-dawn", "OVA: Romance Dawn Story", "Based on Oda's original prototype of One Piece."),
+      COVER("cs-skypiea", "Skypiea (Enel)"), MOV(11), X("short", "trap-coaster", "Short: One Piece 3D: Trap Coaster"),
+      X("crossover", "toriko1", "Crossover 1: Toriko Episode 1", "Watch Toriko's first episode, then One Piece Episode 492 (often skipped on streaming sites)."), 492, COVER("cs-cp9", "Water 7 (CP9)")] },
+    { after: 456, seq: [X("short", "sw-ep0", "Short: Strong World Episode 0", "The first minute shows the end of Strong World — skip it."), 426, 427, 428, 429, MOV(10)] },
+    { after: 516, seq: [X("special", "sp4", "TV Special 4: The Detective Memoirs of Chief Straw Hat Luffy", "Sets up the out-of-continuity episodes that follow."), 291, 292, 303, 406, 407,
+      X("special", "eoeb", "TV Special: Episode of East Blue", "East Blue retelling. Spoiler in the credits — skip them."), MOV(8, "Alabasta retelling."), X("special", "eosky", "TV Special: Episode of Skypiea", "Skypiea retelling."),
+      MOV(9, "Drum Island retelling with different crew members."), X("special", "3d2y", "TV Special: 3D2Y", "Has spoilers for first-timers — skip the credits, or watch after Episode 746 instead.")] },
+    { after: 522, seq: [X("special", "fan-letter", "One Piece Fan Letter"), X("special", "eonami", "TV Special: Episode of Nami", "Arlong Park retelling.")] },
+    { after: 578, seq: [X("special", "eomerry", "TV Special: Episode of Merry", "Its closing segment leads straight into the next short."), X("short", "glorious", "Short: Glorious Island"), MOV(12), COVER("cs-decks", "From the Decks of the World"),
+      X("crossover", "toriko51", "Crossover 2: Toriko Episode 51", "Then One Piece Episode 542."), 542, X("special", "eoluffy", "TV Special: Episode of Luffy"), X("special", "nebulandia", "TV Special: Adventure of Nebulandia"),
+      X("novel", "ace-novel", "Light novels: One Piece: Ace's Story, Vols. 1–2", "Optional reading about Ace's early voyage."), X("crossover", "toriko99", "Crossover 3: Toriko Episode 99", "Then One Piece Episode 590 (also a Dragon Ball crossover)."), 590] },
+    { after: 625, seq: [COVER("cs-caribou", "Caribou")] },
+    { after: 679, seq: [X("special", "eosabo", "TV Special: Episode of Sabo")] },
+    { after: 739, seq: [COVER("cs-jinbe", "Jinbe")] },
+    { after: 746, seq: [COVER("cs-bounty", "Bounty")] },
+    { after: 750, seq: [X("special", "heart-gold", "TV Special: Heart of Gold", "Prequel to Film Gold."), X("short", "gold-ep0", "Short: Gold Episode 0"), MOV(13)] },
+    { after: 877, seq: [COVER("cs-fleet", "Straw Hat Grand Fleet")] },
+    { after: 916, seq: [COVER("cs-bege", "Bege"), 895, 896, MOV(14, "Connected to Episodes 895–896.")] },
+    { after: 956, seq: [907] },
+    { after: 1086, seq: [1029, 1030, X("special", "shanks-log", "TV Special: The Captain's Log of the Legend! Red-Haired Shanks!"), MOV(15), COVER("cs-germa", "Germa (part 1 only)", "Only the first half is spoiler-safe at this point.")] },
+    { after: 1122, seq: [X("special", "navy-log", "Recap special: Unwavering Justice! The Navy's Proud Log!", "Aired during the 2024–25 break (newer than the original guide)."), X("special", "egghead-recap", "Recap special: One Piece Egghead Arc Recap", "Aired April 2025 before the anime resumed (newer than the original guide).")] }
+  ];
+  // Openings that spoil later events for first-timers: [from, to, label]
+  const OP_SPOILERS = [[116, 130, "Opening 3"], [264, 278, "Opening 6"], [629, 635, "Opening 17"], [892, 913, "Opening 22"], [976, 988, "Opening 23 (version 2)"]];
+  const WATCH_ORDER_SOURCE = "https://www.reddit.com/r/OnePiece/comments/tr0izv/watch_order_for_movies_specials_cover_stories_etc/";
+
+  return { WATCH_ORDER, OP_SPOILERS, WATCH_ORDER_SOURCE, MANGA, ONE_TO_ONE, MANGA_NOTE, STREAMING, SEASONS, ARCS, FILLER, MIXED, RECAP, HIGHLIGHTS, CREW_JOINS, CHARACTERS, SIDE };
 })();

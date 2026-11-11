@@ -123,15 +123,32 @@
   const watchedCount = () => Object.keys(S.watched).length;
   const maxWatched = () => { let m = 0; for (const k in S.watched) { const n = +k; if (n > m) m = n; } return m; };
   function stillOK(n) { if (!S.settings.art) return false; if (!S.settings.spoiler || isW(n)) return true; const nx = nextEp(); return !!(nx && nx.n === n); }
-  function nextEp() {
-    for (const e of EP) {
-      if (isW(e.n)) continue;
-      if (S.settings.skipFiller && (e.type === "filler" || e.type === "recap")) continue;
-      if (!counts(e)) continue;
-      return e;
+  /* ----- community watch order (movies, specials, OVAs, moved episodes) */
+  const WO = M.WATCH_ORDER || [];
+  const MOVED = {}, XITEMS = [], WO_AT = {};
+  WO.forEach((b) => { WO_AT[b.after] = b.seq; b.seq.forEach((t) => { if (typeof t === "number") MOVED[t] = b.after; else { t.after = b.after; XITEMS.push(t); } }); });
+  const XTYPE = { ova: "OVA", movie: "Movie", special: "TV Special", short: "Short", cover: "Cover story", crossover: "Crossover", novel: "Light novel" };
+  const ORDER = (() => { const out = []; EP.forEach((e) => { if (MOVED[e.n] == null) out.push({ ep: e }); (WO_AT[e.n] || []).forEach((t) => { if (typeof t === "number") { if (EPN[t]) out.push({ ep: EPN[t], moved: true }); } else out.push({ x: t }); }); }); return out; })();
+  const guideMode = () => S.settings.order === "guide";
+  const xDone = (t) => !!S.side[t.id];
+  const xSkipped = (t) => !!S.side["skip:" + t.id];
+  const epEligible = (e) => !(S.settings.skipFiller && (e.type === "filler" || e.type === "recap")) && counts(e);
+  function upcoming(limit) {
+    const out = [];
+    const list = guideMode() ? ORDER : EP.map((e) => ({ ep: e }));
+    for (const t of list) {
+      if (t.ep ? (!isW(t.ep.n) && epEligible(t.ep)) : (!xDone(t.x) && !xSkipped(t.x))) out.push(t);
+      if (out.length >= limit) break;
     }
+    return out;
+  }
+  function nextEp() {
+    const list = guideMode() ? ORDER : null;
+    if (list) { for (const t of list) if (t.ep && !isW(t.ep.n) && epEligible(t.ep)) return t.ep; return null; }
+    for (const e of EP) if (!isW(e.n) && epEligible(e)) return e;
     return null;
   }
+  const opSpoiler = (n) => (M.OP_SPOILERS || []).find(([a, b]) => n >= a && n <= b);
   function activity() {
     const map = {};
     for (const k in S.watched) { if (S.bulk[k]) continue; const dk = dayKey(S.watched[k]); map[dk] = (map[dk] || 0) + 1; }
@@ -198,6 +215,8 @@
   [[100, "Bookworm", 5e7], [500, "Scholar of Ohara", 2e8], [1000, "Poneglyph Reader", 5e8]].forEach(([n, name, b]) =>
     A("read" + n, name, "Read " + fmt(n) + " manga chapters.", b, "📚", () => R(readCount(), n)));
   A("readall", "Caught Up (Manga)", "Read every released chapter.", 1e9, "🗞️", () => R(readCount(), LAST_CH || 1));
+  A("specials", "Prime-Time Pirate", "Watch every TV special in the watch order.", 1.5e8, "📺", () => { const l = XITEMS.filter((t) => t.type === "special"); return R(l.filter(xDone).length, l.length); });
+  A("extras", "Ultimate Completionist", "Finish every movie, special, OVA, short and cover story in the watch order.", 6e8, "🗺️", () => R(XITEMS.filter(xDone).length, XITEMS.length));
   A("films", "Movie Night", "Watch all 15 animated films.", 1.2e8, "🍿", () => R(sideCount("films"), 15));
   function sideCount(gid) { return Object.keys(S.side).filter((k) => k.startsWith(gid + ":") && S.side[k]).length; }
 
@@ -307,14 +326,25 @@
 
   /* -------------------------------------------------------------- VOYAGE */
   function vVoyage() {
-    const p = progress(), nx = nextEp(), mp = minsPer();
+    const p = progress(), mp = minsPer();
+    const ups = upcoming(5), first = ups[0], nx = first && first.ep ? first.ep : null;
     const remaining = p.total - p.done;
     const pc = pace(), goal = +S.settings.goal || 3;
     const rate = pc || goal;
     const eta = remaining ? new Date(Date.now() + Math.ceil(remaining / rate) * DAY) : null;
     const act = activity(), st = streaks(act);
     let hero;
-    if (nx) {
+    const qItem = (t) => t.ep ? '<button class="q-item" data-act="open" data-ep="' + t.ep.n + '"><b>' + t.ep.n + "</b><span>" + esc(t.ep.t) + "</span>" + badge(t.ep.type) + "</button>"
+      : '<a class="q-item q-x" href="#side"><b>✦</b><span>' + esc(t.x.title) + '</span><span class="badge b-x">' + XTYPE[t.x.type] + "</span></a>";
+    const queue = '<div class="queue"><div class="queue-h">Then…' + (guideMode() ? " · community watch order" : "") + "</div>" + ups.slice(1).map(qItem).join("") + "</div>";
+    if (first && first.x) {
+      const x = first.x, rd = x.type === "cover" || x.type === "novel";
+      hero = '<section class="hero card extra-hero"><div class="hero-kicker">Side voyage · community watch order</div><div class="hero-ep">' + XTYPE[x.type] + " · after Episode " + x.after + "</div>" +
+        '<h1 class="hero-title">' + esc(x.title) + "</h1>" + (x.note ? '<div class="hero-hl">' + esc(x.note) + "</div>" : "") +
+        '<p class="muted small">Extras never count toward finishing the 1999 series.</p>' +
+        '<div class="hero-actions"><button class="btn primary" data-act="xdone" data-x="' + esc(x.id) + '">' + (rd ? "Mark read" : "Mark watched") + '</button><button class="btn" data-act="xskip" data-x="' + esc(x.id) + '">Skip for now</button><a class="btn ghost" href="#side">All extras</a></div>' +
+        queue + watchLinks() + "</section>";
+    } else if (nx) {
       const s = SEASON[nx.s], hl = M.HIGHLIGHTS[nx.n];
       hero = '<section class="hero card' + (stillOf(nx.n) && stillOK(nx.n) ? " has-still" : "") + '" style="--accent:' + s.color + '">' +
         '<div class="hero-kicker">Next on the voyage</div>' +
@@ -325,8 +355,9 @@
         (manga(nx) ? '<div class="hero-manga">📖 ' + esc(manga(nx).text) + "</div>" : "") +
         (stillOf(nx.n) && stillOK(nx.n) ? '<img onerror="this.remove()" class="hero-still" src="' + IMG + "w500" + stillOf(nx.n) + '" alt="" loading="lazy">' : "") +
         '<div class="hero-actions"><button class="btn primary" data-act="toggle" data-ep="' + nx.n + '">Mark watched</button><button class="btn" data-act="open" data-ep="' + nx.n + '">Details</button><a class="btn ghost" href="#log/' + s.n + '">Open Season ' + s.n + "</a></div>" +
-        '<div class="queue"><div class="queue-h">Then…</div>' + EP.filter((e) => e.n > nx.n && !isW(e.n) && counts(e) && !(S.settings.skipFiller && (e.type === "filler" || e.type === "recap"))).slice(0, 4).map((e) =>
-          '<button class="q-item" data-act="open" data-ep="' + e.n + '"><b>' + e.n + "</b><span>" + esc(e.t) + "</span>" + badge(e.type) + "</button>").join("") + "</div>" + watchLinks() + "</section>";
+        (first.moved ? '<div class="hero-manga">↪ Moved here by the community watch order (normally after Episode ' + (nx.n - 1) + ")</div>" : "") +
+        (S.settings.spoiler && opSpoiler(nx.n) ? '<div class="hero-manga">⚠️ First-timer tip: skip the opening — ' + opSpoiler(nx.n)[2] + " shows spoilers.</div>" : "") +
+        queue + watchLinks() + "</section>";
     } else {
       hero = '<section class="hero card done"><div class="hero-kicker">You\'ve caught up</div><h1 class="hero-title">The horizon awaits.</h1><p class="muted">You have logged every aired episode' + (S.settings.completion === "canon" ? " in canon mode" : "") + '. ' + (UPCOMING.length ? "Next up: episode " + UPCOMING[0][0] + " on " + niceDate(UPCOMING[0][2]) + "." : "The anime returns in 2027; new episodes are added automatically as they air.") + '</p><div class="hero-actions"><a class="btn primary" href="#bounties">See your bounty</a><a class="btn" href="#side">Side voyages</a></div></section>';
     }
@@ -436,7 +467,7 @@
       const gp = progress(g.eps), a = g.eps[0].n, b = g.eps[g.eps.length - 1].n;
       return '<section class="arc"><div class="arc-h"><div><h3>' + esc(g.arc) + '</h3><span class="muted">Episodes ' + a + (a !== b ? "–" + b : "") + " · " + g.eps.length + " ep" + (g.eps.length > 1 ? "s" : "") + (MG ? (chRange(epsChapters(g.eps)) ? " · 📖 " + chRange(epsChapters(g.eps)) : " · Anime-original") : manga(g.eps[0]) ? " · 📖 " + esc(manga(g.eps[0]).short) : "") + "</span></div>" +
         '<div class="arc-tools">' + bar(gp.pct, s.color) + '<span class="muted">' + gp.done + "/" + gp.total + '</span><button class="btn sm" data-act="range" data-a="' + a + '" data-b="' + b + '" data-v="' + (gp.pct >= 100 ? 0 : 1) + '">' + (gp.pct >= 100 ? "Clear arc" : "Mark arc") + "</button></div></div>" +
-        '<div class="ep-list">' + vis.map(epRow).join("") + "</div></section>";
+        '<div class="ep-list">' + vis.map((e) => epRow(e) + (guideMode() && WO_AT[e.n] ? xBlock(e.n) : "")).join("") + "</div></section>";
     }).join("");
     return '<div class="season-view" style="--accent:' + s.color + '">' +
       '<div class="crumbs"><a href="#log">← All seasons</a></div>' +
@@ -465,6 +496,8 @@
       '<div class="m-head" style="--accent:' + s.color + '"><div class="m-kicker">Season ' + s.n + " · " + esc(s.title) + " · " + esc(e.arc) + '</div><div class="m-num">Episode ' + n + "</div><h2>" + esc(e.t) + "</h2>" +
       '<div class="m-meta">' + badge(e.type) + "<span>Aired " + niceDate(e.d) + " (" + ago(e.d) + ")</span><span>≈ " + minsPer() + " min</span></div></div>" +
       (hl ? '<div class="m-hl">✦ ' + esc(hl) + "</div>" : "") +
+      (MOVED[n] != null ? '<p class="m-note">↪ The community watch order suggests watching this after Episode ' + MOVED[n] + ".</p>" : "") +
+      (S.settings.spoiler && !w && opSpoiler(n) ? '<p class="m-note">⚠️ First-timer tip: skip the opening — ' + opSpoiler(n)[2] + " shows spoilers.</p>" : "") +
       (e.type === "filler" ? '<p class="m-note">Anime-original filler — skippable without missing the main story, though some are genuinely fun.</p>' : e.type === "mixed" ? '<p class="m-note">Mixed — mostly canon with some anime-original padding.</p>' : e.type === "recap" ? '<p class="m-note">Recap / retrospective episode.</p>' : "") +
       '<div class="m-actions"><button class="btn ' + (w ? "" : "primary") + '" data-act="toggle" data-ep="' + n + '">' + (w ? "✓ Watched — undo" : "Mark watched") + '</button><button class="btn" data-act="upto" data-ep="' + n + '">Mark all up to here</button><button class="btn ghost fav' + (S.favs[n] ? " on" : "") + '" data-act="fav" data-ep="' + n + '">' + (S.favs[n] ? "★ Favorite" : "☆ Favorite") + "</button></div>" +
       (w ? '<div class="m-when"><label for="watchDate">Watched on</label><input type="date" id="watchDate" data-ep="' + n + '" value="' + dayKey(S.watched[n]) + '" min="' + e.d + '" max="' + todayKey() + '">' +
@@ -706,7 +739,7 @@
     const poster = '<section class="mywanted"><div class="mw-poster"><div class="mw-top">WANTED</div>' + personalPosterPhoto() + '<div class="mw-dead">DEAD OR ALIVE</div><div class="mw-name">' + esc((S.settings.name || "Rookie Pirate").toUpperCase()) + '</div><div class="mw-bounty"><span>' + BERRY + "</span>" + fmt(tb) + '<em>-</em></div><div class="mw-marine">GRAND LINE VOYAGE</div></div>' +
       '<div class="mw-info"><div class="mw-rank">' + rankFor(tb) + '</div><h1>Bounty Board</h1><p class="muted">Every milestone raises your bounty. ' + earned + " of " + res.length + ' bounties claimed.</p>' + bar(pct(earned, res.length)) +
       '<p class="muted small">Ranks: Stowaway → Rookie → Supernova (' + shortBounty(5e7) + ") → Worst Generation (" + shortBounty(2e8) + ") → Warlord (" + shortBounty(8e8) + ") → Emperor (" + shortBounty(2e9) + ") → King of the Pirates (" + shortBounty(4e9) + ').</p><a class="btn sm" href="#helm">Edit wanted poster</a></div></section>';
-    const cats = [["Milestones", (a) => /^(first|count|allaired|ep1000|caughtup|timeskip|merry)/.test(a.id)], ["Seasons", (a) => a.id.startsWith("season")], ["Crew", (a) => a.id.startsWith("crew-")], ["Habits", (a) => /^(streak|binge|night|rate|notes|favs|filler|canon)/.test(a.id)], ["Manga", (a) => /^read/.test(a.id)], ["Side Voyages", (a) => /^(la\d|films)/.test(a.id)]];
+    const cats = [["Milestones", (a) => /^(first|count|allaired|ep1000|caughtup|timeskip|merry)/.test(a.id)], ["Seasons", (a) => a.id.startsWith("season")], ["Crew", (a) => a.id.startsWith("crew-")], ["Habits", (a) => /^(streak|binge|night|rate|notes|favs|filler|canon)/.test(a.id)], ["Manga", (a) => /^read/.test(a.id)], ["Side Voyages", (a) => /^(la\d|films|specials|extras)$/.test(a.id)]];
     const grid = cats.map(([name, f]) => '<section><h2 class="cat-h">' + name + '</h2><div class="ach-grid">' + res.filter(f).map((a) => {
       const secret = a.hidden && !a.done;
       return '<div class="ach' + (a.done ? " got" : "") + '"><div class="ach-ico">' + (secret ? "❔" : a.icon) + '</div><div class="ach-body"><div class="ach-name">' + (secret ? "Secret bounty" : esc(a.name)) + '</div><div class="ach-desc">' + (secret ? "Keep sailing to reveal this one." : esc(a.desc)) + "</div>" +
@@ -819,8 +852,23 @@
   }
 
   /* ---------------------------------------------------------------- SIDE */
+  function xRow(t) {
+    const w = xDone(t), k = t.id;
+    return '<div class="ep-row x-row' + (w ? " is-w" : "") + '"><button class="chk" data-act="side" data-k="' + esc(k) + '" aria-pressed="' + w + '"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"/></svg></button><span class="ep-num">✦</span>' +
+      '<span class="ep-title static">' + esc(t.title) + (t.note ? '<em class="x-note">' + esc(t.note) + "</em>" : "") + '</span><span class="badge b-x">' + XTYPE[t.type] + "</span></div>";
+  }
+  function xBlock(after) {
+    return '<div class="x-block"><div class="x-block-h">✦ Community watch order — after Episode ' + after + "</div>" + WO_AT[after].map((t) => typeof t === "number"
+      ? '<div class="ep-row x-row moved' + (isW(t) ? " is-w" : "") + '"><span></span><span class="ep-num">' + t + '</span><button class="ep-title" data-act="open" data-ep="' + t + '">↪ Episode ' + t + " (moved here): " + esc(EPN[t] ? EPN[t].t : "") + "</button></div>"
+      : xRow(t)).join("") + "</div>";
+  }
   function vSide() {
-    return '<div class="page-h"><h1>Side Voyages</h1><p class="muted">Extras outside the 1999 anime. These are <b>non-canon to your completion</b> — they never affect your main progress, but they do have their own bounties.</p></div>' +
+    const xd = XITEMS.filter(xDone).length;
+    const extras = '<section class="card side"><div class="card-h"><h2>Movies, Specials, OVAs &amp; Extras</h2><span class="muted">' + xd + " / " + XITEMS.length + "</span></div>" +
+      '<p class="muted">Everything outside the numbered episodes, in a first-timer-safe order adapted from a <a href="' + M.WATCH_ORDER_SOURCE + '" target="_blank" rel="noopener">community guide on r/OnePiece</a>. It also moves a few out-of-continuity episodes to better spots.</p>' +
+      '<div class="row"><label class="tog"><input type="checkbox" data-act="guideOrder"' + (guideMode() ? " checked" : "") + "> Follow this order on my Voyage (Next up, queue and Logbook)</label></div>" + bar(pct(xd, XITEMS.length)) +
+      WO.map((b) => '<div class="side-g"><div class="side-gh"><h3>After Episode ' + b.after + (EPN[b.after] ? ' <span class="muted small">· ' + esc(EPN[b.after].t) + "</span>" : "") + "</h3></div>" + xBlock(b.after).replace('<div class="x-block-h">✦ Community watch order — after Episode ' + b.after + "</div>", "") + "</div>").join("") + "</section>";
+    return '<div class="page-h"><h1>Side Voyages</h1><p class="muted">Extras outside the 1999 anime. These are <b>non-canon to your completion</b> — they never affect your main progress, but they do have their own bounties.</p></div>' + extras +
       M.SIDE.map((sec) => '<section class="card side"><div class="card-h"><h2>' + esc(sec.title) + '</h2></div><p class="muted">' + esc(sec.note) + "</p>" +
         sec.items.map((g) => {
           const done = sideCount(g.id);
@@ -846,6 +894,7 @@
       '<label class="field">Minutes per episode <span class="muted">(24 full · ~20 skipping OP/ED)</span><input id="setMin" type="number" min="1" max="60" value="' + st.minutes + '"></label>' +
       '<label class="field">Daily goal (episodes) <span class="muted">used for ETA until you have a pace</span><input id="setGoal" type="number" min="1" max="100" value="' + st.goal + '"></label>' +
       '<label class="field">Completion counts<select id="setComp"><option value="all"' + (st.completion === "all" ? " selected" : "") + '>Every episode (true completionist)</option><option value="canon"' + (st.completion === "canon" ? " selected" : "") + ">Canon + mixed only</option></select></label>" +
+      '<label class="field">Watch order<select id="setOrder"><option value="broadcast"' + (st.order !== "guide" ? " selected" : "") + '>Broadcast order (episode numbers only)</option><option value="guide"' + (st.order === "guide" ? " selected" : "") + ">Community order (adds movies, specials &amp; OVAs)</option></select></label>" +
       '<label class="tog block"><input type="checkbox" id="setSkip"' + (st.skipFiller ? " checked" : "") + "> Skip filler &amp; recaps in “Next on the voyage”</label>" +
       '<label class="tog block"><input type="checkbox" id="setSpoil"' + (st.spoiler ? " checked" : "") + "> Spoiler shield (hide characters &amp; crew until their debut)</label>" +
       '<label class="tog block"><input type="checkbox" id="setArt"' + (st.art ? " checked" : "") + "> Show artwork from TMDB (episode stills respect the spoiler shield)</label>" +
@@ -888,6 +937,8 @@
       case "csort": UI.crewSort = t.dataset.v; rerender(); break;
       case "side": { const k = t.dataset.k; if (S.side[k]) delete S.side[k]; else S.side[k] = Date.now(); commit(); break; }
       case "closemodal": closeModal(); break;
+      case "xdone": S.side[t.dataset.x] = Date.now(); commit(); toast("Logged — onward!"); break;
+      case "xskip": S.side["skip:" + t.dataset.x] = true; commit(); toast("Skipped for now — it's still under Side Voyages"); break;
       case "reveal": UI.reveal = n; openEp(n, true); break;
       case "opench": ev.preventDefault(); openCh(+t.dataset.ch); break;
       case "rtoggle": { const c = +t.dataset.ch; if (S.read[c]) { delete S.read[c]; delete S.readBulk[c]; } else S.read[c] = Date.now(); commit(); break; }
@@ -915,6 +966,7 @@
   });
   document.addEventListener("change", (ev) => {
     const t = ev.target;
+    if (t.dataset.act === "guideOrder") { S.settings.order = t.checked ? "guide" : "broadcast"; commit(true); toast(t.checked ? "Your voyage now follows the community watch order" : "Back to broadcast order"); return; }
     if (t.dataset.act === "hidew") { UI.hideWatched = t.checked; rerender(); return; }
     if (t.dataset.act === "spoiler") { S.settings.spoiler = t.checked; commit(true); return; }
     if (t.id === "crewGroup") { UI.crewGroup = t.value; rerender(); return; }
@@ -924,6 +976,7 @@
     else if (t.id === "setMin") st.minutes = clamp(+t.value || 24, 1, 60);
     else if (t.id === "setGoal") st.goal = clamp(+t.value || 3, 1, 100);
     else if (t.id === "setComp") st.completion = t.value;
+    else if (t.id === "setOrder") st.order = t.value;
     else if (t.id === "setSkip") st.skipFiller = t.checked;
     else if (t.id === "setSpoil") st.spoiler = t.checked;
     else if (t.id === "setMotion") st.reduceMotion = t.checked;
