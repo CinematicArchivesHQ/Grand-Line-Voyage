@@ -600,3 +600,13 @@ details.marc .ep-list { padding: 0 10px 12px; }
 
 .update-card code { font-size: .78rem; background: rgba(0, 0, 0, .3); padding: 1px 6px; border-radius: 5px; }
 .toast.upd { display: flex; align-items: center; gap: 14px; border-color: rgba(242, 182, 50, .55); }
+
+/* ---------------------------------------------------------- reading style */
+.rf-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 12px; padding: 9px 12px; border-radius: 12px; background: rgba(155, 140, 255, .1); border: 1px solid rgba(155, 140, 255, .35); font-size: .92rem; }
+.rf-line b { color: #c9c0ff; }
+.rf-line.ok { background: rgba(61, 220, 151, .08); border-color: rgba(61, 220, 151, .35); color: var(--canon); }
+.rf-line.muted { background: transparent; border-style: dashed; }
+.rf-btns { display: flex; gap: 6px; margin-left: auto; }
+.m-sec .rf-line { margin-top: 0; }
+.rf-chip { font-size: .72rem; font-weight: 700; color: #c9c0ff; background: rgba(155, 140, 255, .12); border: 1px solid rgba(155, 140, 255, .35); padding: 1px 7px; border-radius: 99px; white-space: nowrap; vertical-align: 1px; }
+.rf-chip.ok { color: var(--canon); background: rgba(61, 220, 151, .08); border-color: rgba(61, 220, 151, .35); }

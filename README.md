@@ -59,3 +59,8 @@ and characters all live in `js/meta.js`.
 Episode titles and Japanese air dates are compiled from public episode lists (Wikipedia, official announcements).
 Arc groupings, filler classification and character debut episodes follow common fan conventions and are best-effort.
 Unofficial and fan-made; no video is hosted. ONE PIECE © Eiichiro Oda / Shueisha, Toei Animation.
+
+### Reading style (what to read before watching)
+Settings → **Reading style** (or the chips on the Manga tab): *Off*, *Manga first* or *Anime first*.
+- **Manga first** — Next on the voyage shows "📖 Read first: Chapters X–Y" with **Mark read** / **Open chapter**; Logbook rows get a 📖 chip. It's only a reminder — you can always mark the episode watched.
+- **Anime first** — after you mark an episode watched, a toast offers to mark its chapters read.

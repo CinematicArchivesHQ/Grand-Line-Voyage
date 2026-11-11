@@ -348,12 +348,31 @@
   const bar = (p, color) => '<div class="bar"><span style="width:' + clamp(p, 0, 100) + "%" + (color ? ";background:" + color : "") + '"></span></div>';
   const ago = (iso) => { const y = new Date().getFullYear() - Number(iso.slice(0, 4)); return y <= 0 ? "this year" : y === 1 ? "1 year ago" : y + " years ago"; };
 
+  /* ----- reading style: manga first / anime first */
+  const readStyle = () => (S.settings.reading === "manga" || S.settings.reading === "anime") ? S.settings.reading : "off";
+  const epUnread = (n) => (EP_CH[n] || []).filter((c) => !S.read[c]);
+  function chList(list) {
+    const out = []; let a = null, b = null;
+    list.slice().sort((x, y) => x - y).forEach((c) => { if (a == null) { a = b = c; } else if (c === b + 1) b = c; else { out.push(a === b ? a : a + "–" + b); a = b = c; } });
+    if (a != null) out.push(a === b ? a : a + "–" + b);
+    return out.join(", ");
+  }
+  const chWord = (list) => (list.length === 1 ? "Chapter " : "Chapters ") + chList(list);
+  function readFirst(e, compact) {
+    if (readStyle() !== "manga" || !MG) return "";
+    const all = EP_CH[e.n] || [], un = epUnread(e.n);
+    if (!all.length) return e.type === "filler" || e.type === "recap" ? '<div class="rf-line muted">📖 Nothing to read — anime-only episode.</div>' : "";
+    if (!un.length) return '<div class="rf-line ok">✓ Caught up on the manga for this episode (' + chWord(all) + ").</div>";
+    return '<div class="rf-line"><span>📖 <b>Read first:</b> ' + chWord(un) + (un.length < all.length ? " (" + un.length + " left)" : "") + "</span>" +
+      (compact ? "" : '<span class="rf-btns"><button class="btn sm" data-act="readEp" data-ep="' + e.n + '">Mark read</button><button class="btn sm ghost" data-act="opench" data-ch="' + un[0] + '">Open Ch. ' + un[0] + "</button></span>") + "</div>";
+  }
   function epRow(e) {
     const w = isW(e.n), hl = M.HIGHLIGHTS[e.n];
     return '<div class="ep-row t-' + e.type + (w ? " is-w" : "") + '" data-ep="' + e.n + '">' +
       '<button class="chk" data-act="toggle" data-ep="' + e.n + '" aria-pressed="' + w + '" aria-label="' + (w ? "Unmark" : "Mark") + " episode " + e.n + ' watched"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"/></svg></button>' +
       '<span class="ep-num">' + e.n + "</span>" +
-      '<button class="ep-title" data-act="open" data-ep="' + e.n + '">' + esc(e.t) + (hl ? ' <span class="hl" title="' + esc(hl) + '">✦</span>' : "") + (S.notes[e.n] ? ' <span class="has-note" title="Has notes">✎</span>' : "") + "</button>" +
+      '<button class="ep-title" data-act="open" data-ep="' + e.n + '">' + esc(e.t) + (hl ? ' <span class="hl" title="' + esc(hl) + '">✦</span>' : "") + (S.notes[e.n] ? ' <span class="has-note" title="Has notes">✎</span>' : "") +
+      (readStyle() === "manga" && EP_CH[e.n] && !isW(e.n) ? (epUnread(e.n).length ? ' <span class="rf-chip" title="Read before watching">📖 ' + chList(epUnread(e.n)) + "</span>" : ' <span class="rf-chip ok" title="Chapters read">📖 ✓</span>') : "") + "</button>" +
       '<span class="ep-date">' + niceDate(e.d) + "</span>" + badge(e.type) +
       '<button class="fav' + (S.favs[e.n] ? " on" : "") + '" data-act="fav" data-ep="' + e.n + '" aria-label="Favorite">' + (S.favs[e.n] ? "★" : "☆") + "</button></div>";
   }
@@ -389,6 +408,7 @@
         (hl ? '<div class="hero-hl">✦ ' + esc(hl) + "</div>" : "") +
         (manga(nx) ? '<div class="hero-manga">📖 ' + esc(manga(nx).text) + "</div>" : "") +
         (stillOf(nx.n) && stillOK(nx.n) ? '<img onerror="this.remove()" class="hero-still" src="' + IMG + "w500" + stillOf(nx.n) + '" alt="" loading="lazy">' : "") +
+        readFirst(nx) +
         '<div class="hero-actions"><button class="btn primary" data-act="toggle" data-ep="' + nx.n + '">Mark watched</button><button class="btn" data-act="open" data-ep="' + nx.n + '">Details</button><a class="btn ghost" href="#log/' + s.n + '">Open Season ' + s.n + "</a></div>" +
         (first.moved && orderMode() === "guide" ? '<div class="hero-manga">↪ Moved here by the community watch order (normally after Episode ' + (nx.n - 1) + ")</div>" : "") +
         (S.settings.spoiler && opSpoiler(nx.n) ? '<div class="hero-manga">⚠️ First-timer tip: skip the opening — ' + opSpoiler(nx.n)[2] + " shows spoilers.</div>" : "") +
@@ -537,6 +557,7 @@
       '<div class="m-actions"><button class="btn ' + (w ? "" : "primary") + '" data-act="toggle" data-ep="' + n + '">' + (w ? "✓ Watched — undo" : "Mark watched") + '</button><button class="btn" data-act="upto" data-ep="' + n + '">Mark all up to here</button><button class="btn ghost fav' + (S.favs[n] ? " on" : "") + '" data-act="fav" data-ep="' + n + '">' + (S.favs[n] ? "★ Favorite" : "☆ Favorite") + "</button></div>" +
       (w ? '<div class="m-when"><label for="watchDate">Watched on</label><input type="date" id="watchDate" data-ep="' + n + '" value="' + dayKey(S.watched[n]) + '" min="' + e.d + '" max="' + todayKey() + '">' +
         (S.bulk[n] ? '<span class="muted">Bulk-marked — set the real date and it will count toward your streaks and activity.</span>' : '<span class="muted">Change it if you watched this on another day.</span>') + "</div>" : "") +
+      (readStyle() === "manga" && !w ? '<div class="m-sec">' + readFirst(e) + "</div>" : "") +
       (EP_CH[n] ? '<div class="m-sec"><div class="m-lbl">Adapts manga</div><div class="m-chs">' + EP_CH[n].map((c) => '<button class="chip-ch' + (S.read[c] ? " on" : "") + '" data-act="opench" data-ch="' + c + '"><b>Ch. ' + c + "</b>" + esc(CHN[c].t) + "</button>").join("") + "</div>" +
         (EP_FX[n] ? '<div class="small muted" style="margin-top:6px">Also revisits (flashback/recap): ' + EP_FX[n].map((c) => '<button class="link" data-act="opench" data-ch="' + c + '">Ch. ' + c + "</button>").join(", ") + "</div>" : "") + "</div>"
         : mg ? '<div class="m-sec"><div class="m-lbl">Manga</div><div>📖 ' + esc(mg.text) + "</div></div>" : "") +
@@ -566,6 +587,9 @@
     else if (mr > cov) delta = "Your reading is <b>" + (mr - cov) + " chapter" + (mr - cov === 1 ? "" : "s") + " ahead</b> of your anime." + (mr > la ? " You're past everything the anime has adapted." : "");
     else if (cov > mr) delta = "Your anime is <b>" + (cov - mr) + " chapter" + (cov - mr === 1 ? "" : "s") + " ahead</b> of your reading.";
     else delta = "Your anime and manga are <b>perfectly in sync</b>.";
+    const nxe = nextEp();
+    if (readStyle() === "manga" && nxe && epUnread(nxe.n).length) delta += " Next up is Episode " + nxe.n + ' — <b>read ' + chWord(epUnread(nxe.n)) + "</b> first.";
+    const styleChips = '<div class="chips" style="margin-bottom:12px"><span class="muted small">Reading style:</span>' + [["off", "Off"], ["manga", "Manga first"], ["anime", "Anime first"]].map(([v, l]) => '<button class="chip' + (readStyle() === v ? " on" : "") + '" data-act="rstyle" data-v="' + v + '">' + l + "</button>").join("") + "</div>";
     const tiles = [
       ["Chapters read", fmt(read), "of " + fmt(LAST_CH) + " released · " + pct(read, LAST_CH) + "%"],
       ["Volumes complete", volsDone, "of " + Object.keys(vols).length + " collected volumes"],
@@ -574,7 +598,7 @@
       ["Anime has adapted", "Ch. " + la, fmt(LAST_CH - la) + " chapters not animated yet"]
     ].map(([k, v, x]) => '<div class="tile"><div class="tile-k">' + k + '</div><div class="tile-v">' + v + '</div><div class="tile-s">' + x + "</div></div>").join("");
     const sync = '<section class="card sync"><div class="card-h"><h2>Anime ↔ Manga</h2><span class="muted">every episode plotted against the chapters it adapts</span></div>' +
-      '<p class="sync-msg">' + delta + "</p>" + corrChart(mw, mr) +
+      styleChips + '<p class="sync-msg">' + delta + "</p>" + corrChart(mw, mr) +
       '<div class="row" style="margin-top:12px"><button class="btn primary" data-act="syncRead"' + (cov ? "" : " disabled") + '>Mark chapters my anime covers as read</button>' +
       (mr && mr < LAST_CH ? '<button class="btn" data-act="opench" data-ch="' + (mr + 1) + '">Next chapter: ' + (mr + 1) + " →</button>" : !mr && cov ? '<button class="btn" data-act="opench" data-ch="' + Math.min(cov + 1, LAST_CH) + '">Continue the story in the manga: Ch. ' + Math.min(cov + 1, LAST_CH) + " →</button>" : "") + "</div></section>";
     const pace = '<section class="card"><div class="card-h"><h2>Adaptation pace</h2><span class="muted">manga chapters per episode, by season</span></div>' + paceChart() + "</section>";
@@ -949,6 +973,7 @@
       '<label class="field">Minutes per episode <span class="muted">(24 full · ~20 skipping OP/ED)</span><input id="setMin" type="number" min="1" max="60" value="' + st.minutes + '"></label>' +
       '<label class="field">Daily goal (episodes) <span class="muted">used for ETA until you have a pace</span><input id="setGoal" type="number" min="1" max="100" value="' + st.goal + '"></label>' +
       '<label class="field">Completion counts<select id="setComp"><option value="all"' + (st.completion === "all" ? " selected" : "") + '>Every episode (true completionist)</option><option value="canon"' + (st.completion === "canon" ? " selected" : "") + ">Canon + mixed only</option></select></label>" +
+      '<label class="field">Reading style<select id="setReading"><option value="off"' + (readStyle() === "off" ? " selected" : "") + '>Off</option><option value="manga"' + (readStyle() === "manga" ? " selected" : "") + '>Manga first — show what to read before each episode</option><option value="anime"' + (readStyle() === "anime" ? " selected" : "") + ">Anime first — offer to mark chapters read after each episode</option></select></label>" +
       '<label class="field">Movies, specials &amp; OVAs in my voyage<select id="setOrder"><option value="broadcast"' + (orderMode() === "broadcast" ? " selected" : "") + '>Off — episodes only</option><option value="release"' + (orderMode() === "release" ? " selected" : "") + '>On — by release date</option><option value="guide"' + (orderMode() === "guide" ? " selected" : "") + ">On — community watch order</option></select></label>" +
       '<label class="tog block"><input type="checkbox" id="setSkip"' + (st.skipFiller ? " checked" : "") + "> Skip filler &amp; recaps in “Next on the voyage”</label>" +
       '<label class="tog block"><input type="checkbox" id="setSpoil"' + (st.spoiler ? " checked" : "") + "> Spoiler shield (hide characters &amp; crew until their debut)</label>" +
@@ -1017,7 +1042,8 @@
       case "removePosterPhoto": setPosterPhoto(""); break;
       case "toggle": {
         const was = isW(n); toggle(n);
-        if (!was) toast("✓ Logged episode " + n);
+        if (!was && readStyle() === "anime" && epUnread(n).length) toast('<div><b>✓ Logged episode ' + n + '</b><br><span class="muted small">You just watched ' + chWord(epUnread(n)) + '.</span></div><button class="btn sm primary" data-act="readEp" data-ep="' + n + '">Mark read</button>', "upd");
+        else if (!was) toast("✓ Logged episode " + n);
         break;
       }
       case "open": ev.preventDefault(); openEp(n); break;
@@ -1067,6 +1093,8 @@
       case "cb-yes": { const f = confirmBox._fn; closeConfirm(); if (f) f(); break; }
       case "cb-no": closeConfirm(); break;
       case "appUpdate": applyUpdate(); break;
+      case "readEp": { const un = epUnread(n); if (!un.length) { toast("Already read"); break; } const ts = Date.now(); un.forEach((c) => { S.read[c] = ts; delete S.readBulk[c]; }); commit(); toast("📖 Marked " + chWord(un) + " read"); break; }
+      case "rstyle": S.settings.reading = t.dataset.v; commit(true); break;
       case "appCheck": checkForUpdate(true); break;
       default: if (act.startsWith("cloud-") && window.GLLCloud) window.GLLCloud.action(act, t);
     }
@@ -1084,6 +1112,7 @@
     else if (t.id === "setGoal") st.goal = clamp(+t.value || 3, 1, 100);
     else if (t.id === "setComp") st.completion = t.value;
     else if (t.id === "setOrder") st.order = t.value;
+    else if (t.id === "setReading") st.reading = t.value;
     else if (t.id === "setSkip") st.skipFiller = t.checked;
     else if (t.id === "setSpoil") st.spoiler = t.checked;
     else if (t.id === "setMotion") st.reduceMotion = t.checked;
