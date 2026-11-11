@@ -19,6 +19,14 @@ A CinematicArchivesHQ fan project: a static, no-build web app for tracking every
 
 Progress is stored in the browser's `localStorage` (key `grandline-logbook-v1`, kept from the original name so existing progress carries over).
 
+## Cloud profile (Firebase)
+Sign in with Google under **Settings → Cloud sync** to sync progress across browsers and devices.
+- `js/cloud.js` loads the Firebase SDK from Google's CDN; `js/firebase-config.js` holds the project's public web config.
+- Progress lives in Firestore at `users/{uid}` (one JSON document); the wanted-poster photo at `users/{uid}/extra/photo`.
+- Every change saves locally first, then uploads within ~1 second; other open devices update live. Offline changes queue and upload on reconnect.
+- The first time a browser with existing progress signs in, you choose: merge, keep the cloud copy, or keep this browser's copy.
+- `firestore.rules` is the security rule template (only the owner's Google account can read/write); the live rules are set in the Firebase console.
+
 ## Deploy on GitHub Pages
 1. Create a repo (e.g. `onepiece-completionist-watchlist`) under CinematicArchivesHQ.
 2. Upload everything in this folder to the repo root (`index.html`, `css/`, `js/`, `assets/`).

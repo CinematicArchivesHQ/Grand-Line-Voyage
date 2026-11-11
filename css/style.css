@@ -558,3 +558,23 @@ details.marc .ep-list { padding: 0 10px 12px; }
   .ch-row .ch-eps { grid-column: 3; grid-row: 3; justify-self: start; }
   .nav a { padding: 6px 2px; font-size: .58rem; }
 }
+
+/* ------------------------------------------------------------------ cloud */
+.cloud-dot { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; font-size: 1rem; text-decoration: none !important; border: 1px solid var(--line); color: var(--muted); flex-shrink: 0; }
+.cloud-dot.on { color: var(--canon); border-color: rgba(61, 220, 151, .5); }
+.cloud-dot.busy { color: var(--gold); border-color: rgba(242, 182, 50, .5); animation: pulse 1s ease-in-out infinite; }
+.cloud-dot.warn { color: var(--filler); border-color: rgba(255, 122, 89, .5); }
+.cloud-dot.err { color: #ff6b6b; border-color: rgba(255, 107, 107, .6); }
+@keyframes pulse { 50% { opacity: .45; } }
+.cloud-badge { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.cloud-badge.synced { color: var(--canon); border-color: rgba(61, 220, 151, .5); }
+.cloud-badge.syncing { color: var(--gold); border-color: rgba(242, 182, 50, .5); }
+.cloud-badge.offline, .cloud-badge.error { color: var(--filler); border-color: rgba(255, 122, 89, .5); }
+.cloud-user { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.cloud-user img { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--gold); }
+.cloud-err { color: #ff8b99; font-size: .85rem; }
+.g-mark { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #fff; color: #4285f4; font: 700 .8rem var(--sans); }
+.cloud-choose { position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 16px; background: rgba(2, 10, 20, .75); backdrop-filter: blur(6px); }
+.cloud-choose ul { margin: 0 0 16px; padding-left: 18px; }
+.row.col { flex-direction: column; align-items: stretch; }
+@media (max-width: 720px) { .cloud-dot { margin-left: auto; } .hdr-prog { margin-left: 8px; } }

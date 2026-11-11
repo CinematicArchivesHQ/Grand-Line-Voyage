@@ -87,20 +87,28 @@
     settings: { name: "Rookie Pirate", posterPhoto: "", minutes: 24, goal: 3, spoiler: true, completion: "all", skipFiller: false, reduceMotion: false, art: true },
     created: Date.now()
   });
+  function normalize(d) {
+    const def = DEFAULT();
+    const out = Object.assign(def, d || {});
+    out.settings = Object.assign(DEFAULT().settings, (d && d.settings) || {});
+    ["watched", "bulk", "ratings", "notes", "favs", "side", "ach", "read", "readBulk"].forEach((k) => { if (!out[k] || typeof out[k] !== "object") out[k] = {}; });
+    delete out.app; delete out.exported;
+    return out;
+  }
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
-      if (!raw) return DEFAULT();
-      const d = JSON.parse(raw), def = DEFAULT();
-      const out = Object.assign(def, d);
-      out.settings = Object.assign(DEFAULT().settings, d.settings || {});
-      ["watched", "bulk", "ratings", "notes", "favs", "side", "ach", "read", "readBulk"].forEach((k) => { if (!out[k] || typeof out[k] !== "object") out[k] = {}; });
-      return out;
+      return raw ? normalize(JSON.parse(raw)) : DEFAULT();
     } catch (e) { return DEFAULT(); }
   }
   let S = load();
   let storageOK = true;
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); storageOK = true; } catch (e) { storageOK = false; } }
+  let quietSave = false;
+  function save() {
+    S.savedAt = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(S)); storageOK = true; } catch (e) { storageOK = false; }
+    if (!quietSave && typeof window.GLL_onSave === "function") { try { window.GLL_onSave(S); } catch (e) { console.warn(e); } }
+  }
 
   const UI = { openArcs: {}, hideRead: false, chQ: "", type: "all", hideWatched: false, q: "", crewSort: "season", crewGroup: "all", crewQ: "", paceCalc: null };
 
@@ -842,6 +850,7 @@
       '<label class="tog block"><input type="checkbox" id="setSpoil"' + (st.spoiler ? " checked" : "") + "> Spoiler shield (hide characters &amp; crew until their debut)</label>" +
       '<label class="tog block"><input type="checkbox" id="setArt"' + (st.art ? " checked" : "") + "> Show artwork from TMDB (episode stills respect the spoiler shield)</label>" +
       '<label class="tog block"><input type="checkbox" id="setMotion"' + (st.reduceMotion ? " checked" : "") + "> Reduce motion (skip the loading voyage)</label></section>" +
+      '<section class="card cloud-card" id="cloudCard">' + (window.GLLCloud ? window.GLLCloud.panelHTML() : '<div class="card-h"><h2>Cloud sync</h2></div><p class="muted">Loading…</p>') + "</section>" +
       '<section class="card"><div class="card-h"><h2>Backup</h2></div><p class="muted">Download your full log (episodes, ratings, notes, bounties) as a JSON file, or restore one.</p>' +
       '<div class="row"><button class="btn primary" data-act="export">Export backup</button><label class="btn">Restore backup<input type="file" id="importFile" accept="application/json,.json" hidden></label></div>' +
       '<div class="danger"><h3>Danger zone</h3><p class="muted small">Erase every log entry, rating, note and bounty from this browser.</p><button class="btn danger-btn" data-act="reset">Reset everything</button></div></section></div>' +
@@ -901,6 +910,7 @@
       case "reset": confirmBox("Really erase all progress? This cannot be undone (export a backup first!).", () => { S = DEFAULT(); save(); rerender(); toast("Log wiped. A fresh voyage begins."); }, "Erase everything"); break;
       case "cb-yes": { const f = confirmBox._fn; closeConfirm(); if (f) f(); break; }
       case "cb-no": closeConfirm(); break;
+      default: if (act.startsWith("cloud-") && window.GLLCloud) window.GLLCloud.action(act, t);
     }
   });
   document.addEventListener("change", (ev) => {
@@ -1069,5 +1079,12 @@
   checkAch(true);
   render();
   runLoader();
-  window.GLL = { S: () => S, EP, CHARS, ACH, evalAch }; // handy for debugging in the console
+  window.GLL = {
+    S: () => S, EP, CHARS, ACH, evalAch, toast, normalize, rerender, view: () => route().view,
+    isEmpty: (d) => !d || (!Object.keys(d.watched || {}).length && !Object.keys(d.read || {}).length && !Object.keys(d.side || {}).length && !Object.keys(d.ratings || {}).length),
+    // Replace all progress with data from the cloud without echoing it back.
+    replace(d) { S = normalize(d); quietSave = true; save(); quietSave = false; checkAch(true); rerender(); },
+    confirm: (msg, fn, yes) => confirmBox(msg, fn, yes)
+  };
+  window.dispatchEvent(new Event("gll-ready"));
 })();
