@@ -6,7 +6,6 @@
   <title>Grand Line Voyage — One Piece Completionist Watchlist</title>
   <meta name="description" content="A One Piece (1999) completionist watchlist: all 22 seasons and every episode, a character guide, bounties, stats and more. A CinematicArchivesHQ fan project.">
   <meta name="theme-color" content="#06182b">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -16,32 +15,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Alegreya:ital,wght@0,500;0,700;0,800;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=202611110025">
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,500;0,700;0,800;1,500&family=Alegreya+SC:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20261111-pixel-crew">
 </head>
 <body>
   <!-- Faux loading voyage -->
   <div id="loader" role="status" aria-live="polite" title="Click to skip">
     <div class="l-sky"></div>
     <div class="l-center">
-      <svg class="l-coin" viewBox="0 0 120 120" aria-hidden="true">
-        <defs>
-          <radialGradient id="cg" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#fff2b8"/><stop offset=".45" stop-color="#f2b632"/><stop offset="1" stop-color="#9a6408"/></radialGradient>
-          <linearGradient id="cr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#8a5a06"/></linearGradient>
-        </defs>
-        <circle cx="60" cy="60" r="56" fill="url(#cr)"/>
-        <circle cx="60" cy="60" r="49" fill="url(#cg)" stroke="#a86f0c" stroke-width="1.5"/>
-        <circle cx="60" cy="60" r="42" fill="none" stroke="#a86f0c" stroke-width="1.2" stroke-dasharray="1.5 4.2"/>
-        <g fill="#8a5a06" opacity=".9">
-          <path d="M60 22 L65 55 L60 60 L55 55 Z"/><path d="M60 98 L55 65 L60 60 L65 65 Z" opacity=".75"/>
-          <path d="M22 60 L55 55 L60 60 L55 65 Z" opacity=".75"/><path d="M98 60 L65 65 L60 60 L65 55 Z"/>
-          <path d="M60 60 L80 40 L66 58 Z" opacity=".5"/><path d="M60 60 L40 80 L54 62 Z" opacity=".5"/>
-          <path d="M60 60 L40 40 L58 54 Z" opacity=".5"/><path d="M60 60 L80 80 L62 66 Z" opacity=".5"/>
-        </g>
-        <circle cx="60" cy="60" r="5" fill="#fff2b8" stroke="#8a5a06" stroke-width="1.5"/>
-        <text x="60" y="35" text-anchor="middle" font-family="Pirata One, serif" font-size="9" fill="#7a4c04">N</text>
-        <ellipse class="l-shine" cx="44" cy="36" rx="16" ry="7" fill="#fff" opacity=".35" transform="rotate(-30 44 36)"/>
-      </svg>
+      <img class="l-coin pixel-sprite" src="assets/pixel-doubloon.png" width="120" height="120" alt="" fetchpriority="high">
       <div class="l-shadow"></div>
       <div class="l-brand">Grand Line Voyage</div>
       <div class="l-sub">A One Piece completionist watchlist</div>
@@ -50,14 +32,7 @@
           <svg class="l-waves" viewBox="0 0 120 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 10 Q10 2 20 10 T40 10 T60 10 T80 10 T100 10 T120 10 V20 H0 Z" fill="rgba(255,255,255,.28)"/></svg>
         </div>
         <div class="l-ship" id="lShip">
-          <svg viewBox="0 0 34 52" aria-hidden="true">
-            <path d="M2 40 Q16 50 32 40 L28 46 Q16 52 6 46 Z" fill="#7a4a24"/>
-            <path d="M3 39 L31 39 L28 45 L6 45 Z" fill="#9b6233" stroke="#4a2a12" stroke-width="1"/>
-            <rect x="15.5" y="6" width="2" height="34" fill="#4a2a12"/>
-            <path d="M17.5 9 Q28 18 17.5 34 Z" fill="#f6efe1" stroke="#d8c9ab" stroke-width=".8"/>
-            <path d="M15.5 13 Q8 21 15.5 32 Z" fill="#efe5cf" stroke="#d8c9ab" stroke-width=".8"/>
-            <path d="M17.5 6 L25 8 L17.5 10 Z" fill="#d7263d"/>
-          </svg>
+          <img class="pixel-sprite" src="assets/pixel-going-merry.png" width="80" height="80" alt="" fetchpriority="high">
         </div>
       </div>
       <div class="l-row"><span id="lText">Charting the Grand Line…</span><span id="lPct">0%</span></div>
@@ -67,7 +42,7 @@
 
   <header class="top">
     <a class="brand" href="#voyage" aria-label="Grand Line Voyage home">
-      <svg viewBox="0 0 40 40" class="brand-mark" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#f2b632"/><circle cx="20" cy="20" r="14.5" fill="none" stroke="#8a5a06" stroke-width="1.2" stroke-dasharray="1 2.6"/><path d="M20 6 L23 18 L20 20 L17 18Z M20 34 L17 22 L20 20 L23 22Z M6 20 L18 17 L20 20 L18 23Z M34 20 L22 23 L20 20 L22 17Z" fill="#8a5a06"/></svg>
+      <img class="brand-mark pixel-sprite" src="assets/pixel-doubloon.png" width="36" height="36" alt="">
       <span><b>Grand Line Voyage</b><em>One Piece · 1999–present</em></span>
     </a>
     <nav class="nav" aria-label="Main">
@@ -75,7 +50,7 @@
       <a href="#log" data-view="log"><i>📜</i><span>Logbook</span></a>
       <a href="#manga" data-view="manga"><i>📖</i><span>Manga</span></a>
       <a href="#crew" data-view="crew"><i>🏴</i><span>Crew</span></a>
-      <a href="#bounties" data-view="bounties"><i>💰</i><span>Bounties</span></a>
+      <a href="#bounties" data-view="bounties"><i><img class="ui-sprite pixel-sprite" src="assets/pixel-doubloon.png" width="20" height="20" alt=""></i><span>Bounties</span></a>
       <a href="#stats" data-view="stats"><i>📈</i><span>Ship's Log</span></a>
       <a href="#side" data-view="side"><i>🎬</i><span>Side Voyages</span></a>
       <a href="#helm" data-view="helm"><i>⚙️</i><span>Settings</span></a>
@@ -103,6 +78,6 @@
   <script src="js/art.js?v=202611110025"></script>
   <script src="js/upcoming.js?v=202611110025"></script>
   <script src="js/manga.js?v=202611110025"></script>
-  <script src="js/app.js?v=202611110025"></script>
+  <script src="js/app.js?v=20261111-pixel-crew"></script>
 </body>
 </html>

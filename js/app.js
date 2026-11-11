@@ -171,14 +171,14 @@
   A("canonall", "Purist's Path", "Watch every canon and mixed episode.", 4e8, "📜", () => { const f = EP.filter((e) => e.type === "canon" || e.type === "mixed"); return R(f.filter((e) => isW(e.n)).length, f.length); });
   A("streak3", "Steady Winds", "Log episodes 3 days in a row.", 1e7, "🌊", (c) => R(c.streak.best, 3));
   A("streak7", "Trade Winds", "Log episodes 7 days in a row.", 3e7, "🌬️", (c) => R(c.streak.best, 7));
-  A("streak30", "Calm Belt? Never Heard of It", "Log episodes 30 days in a row.", 1.5e8, "⛵", (c) => R(c.streak.best, 30));
+  A("streak30", "Calm Belt? Never Heard of It", "Log episodes 30 days in a row.", 1.5e8, '<img class="ui-sprite pixel-sprite" src="assets/pixel-going-merry.png" width="24" height="24" alt="">', (c) => R(c.streak.best, 30));
   A("binge10", "Gear Second", "Log 10 episodes in a single day.", 4e7, "💨", (c) => R(c.maxDay, 10));
   A("binge25", "Gear Fourth", "Log 25 episodes in a single day. Please drink water.", 1e8, "💥", (c) => R(c.maxDay, 25));
   A("night", "Night Watch", "Log an episode between midnight and 4 AM.", 1.5e7, "🌙", (c) => R(c.night ? 1 : 0, 1));
   A("rate10", "Food Critic", "Rate 10 episodes.", 1e7, "⭐", () => R(Object.keys(S.ratings).length, 10));
   A("rate100", "Michelin Inspector", "Rate 100 episodes.", 8e7, "🌟", () => R(Object.keys(S.ratings).length, 100));
   A("notes5", "Log Keeper", "Write notes on 5 episodes.", 1e7, "🪶", () => R(Object.values(S.notes).filter((v) => v && v.trim()).length, 5));
-  A("favs10", "Treasure Hoarder", "Favorite 10 episodes.", 1e7, "💰", () => R(Object.keys(S.favs).length, 10));
+  A("favs10", "Treasure Hoarder", "Favorite 10 episodes.", 1e7, '<img class="ui-sprite pixel-sprite" src="assets/pixel-doubloon.png" width="24" height="24" alt="">', () => R(Object.keys(S.favs).length, 10));
   A("merry", "Thank You", "Reach Episode 312.", 7e7, "🐑", () => R(isW(312) ? 1 : 0, 1), true);
   A("timeskip", "Two Years Later", "Reach the second half of the story (Episode 517).", 1.5e8, "⏳", () => R(isW(517) ? 1 : 0, 1), true);
   M.CREW_JOINS.slice(1).forEach((c, i) => A("crew-" + c.id, "Nakama: " + c.role, c.name + " officially joins the crew.", 2e7 + i * 1e7, "🏴", () => R(isW(c.ep) ? 1 : 0, 1), true));
@@ -378,7 +378,8 @@
         '<text x="' + x + '" y="' + (y + 44) + '" text-anchor="middle" class="isle-l">' + esc(s.short) + "</text></a>";
     });
     const [sx, sy] = pts[cur - 1];
-    svg += '<g transform="translate(' + (sx - 16) + "," + (sy - 60) + ')"><g class="map-ship">' + SHIP_SVG_INNER + "</g></g>";
+    svg += '<g transform="translate(' + (sx - 20) + "," + (sy - 55) + ')"><g class="map-ship">' +
+      '<image class="pixel-sprite" href="assets/pixel-going-merry.png" width="40" height="40"/></g></g>';
     return svg + "</svg></div>";
   }
 
@@ -567,15 +568,73 @@
   /* ---------------------------------------------------------------- CREW */
   const locked = (c) => S.settings.spoiler && maxWatched() < c.ep;
   const groupOf = (c) => (c.joins && S.settings.spoiler && maxWatched() < c.joins) ? (PRE_GROUP[c.id] || "Pirate") : c.g;
+  // First safe episode for the selected poster. Null keeps unverified reveals behind the shield.
+  const WANTED_POSTERS = {
+    "ace": null,
+    "alvida": null,
+    "arlong": null,
+    "beckman": null,
+    "bege": null,
+    "bellamy": null,
+    "bigmom": null,
+    "bonclay": null,
+    "bonney": null,
+    "brook": 517,
+    "buggy": null,
+    "caesar": null,
+    "cavendish": null,
+    "chopper": 320,
+    "cracker": null,
+    "crocodile": null,
+    "decken": null,
+    "doflamingo": null,
+    "dorry-brogy": null,
+    "drake": null,
+    "foxy": null,
+    "franky": 320,
+    "garp": null,
+    "hancock": 415,
+    "hawkins": null,
+    "higuma": null,
+    "jinbe": 570,
+    "kaido": null,
+    "kid": null,
+    "klahadore": null,
+    "koby": null,
+    "krieg": null,
+    "kuma": 958,
+    "law": null,
+    "luffy": 522,
+    "mihawk": 1086,
+    "moria": null,
+    "mr3": null,
+    "nami": 320,
+    "olvia": null,
+    "rayleigh": null,
+    "robin": 278,
+    "roger": 958,
+    "sabo": null,
+    "sanji": 746,
+    "shanks": 958,
+    "soldier": null,
+    "teach": null,
+    "tiger": null,
+    "usopp": 320,
+    "whitebeard": 958,
+    "zoro": 320,
+  };
   function crewCard(c) {
     if (locked(c)) {
       return '<div class="poster locked"><div class="p-wanted">WANTED</div><div class="p-photo"><span>?</span></div><div class="p-name">???</div><div class="p-sub">Unlocks after Episode ' + c.ep + '</div><div class="p-foot">#' + c.order + " · Season " + c.s + "</div></div>";
     }
     const g = groupOf(c), aboard = c.joins && (!S.settings.spoiler || maxWatched() >= c.joins);
     const crew = aboard ? M.CREW_JOINS.find((x) => x.id === c.id) : null;
+    const reveal = WANTED_POSTERS[c.id];
+    const showPoster = reveal !== undefined && (!S.settings.spoiler || (reveal !== null && maxWatched() >= reveal));
     return '<article class="poster" style="--g:' + (GROUP_COLOR[g] || "#c9b58b") + '">' +
-      '<div class="p-wanted">WANTED</div>' +
-      '<div class="p-photo"><span>' + esc(initials(c.name)) + '</span><em class="p-group">' + esc(g) + "</em></div>" +
+      (showPoster
+        ? '<img class="p-art" src="assets/wanted/' + c.id + '.webp" alt="' + esc(c.name) + ' wanted poster" loading="lazy" decoding="async">'
+        : '<div class="p-wanted">WANTED</div><div class="p-photo"><span>' + esc(initials(c.name)) + '</span><em class="p-group">' + esc(g) + "</em></div>") +
       '<div class="p-name">' + esc(c.name) + "</div>" + (c.epithet ? '<div class="p-epi">“' + esc(c.epithet) + "”</div>" : "") +
       (crew ? '<div class="p-crew">Straw Hat Pirates · ' + esc(crew.role) + "</div>" : "") +
       '<p class="p-bio">' + esc(c.bio) + "</p>" +
@@ -610,7 +669,8 @@
       body = grid(list);
     }
     return '<div class="page-h"><h1>Crew &amp; Characters</h1><p class="muted">' + CHARS.length + " key characters, ordered by first anime appearance. " + (S.settings.spoiler ? "Spoiler shield is on — characters unlock as you watch their debut episode (" + unlocked + " of " + CHARS.length + " unlocked)." : "Spoiler shield is off — everyone is visible.") + "</p></div>" +
-      crewRoster() + controls + (body || '<p class="muted center">No characters match.</p>');
+      crewRoster() + controls + (body || '<p class="muted center">No characters match.</p>') +
+      '<p class="muted small">Poster artwork from the <a href="https://onepiece.fandom.com/wiki/Bounty/Gallery" target="_blank" rel="noopener noreferrer">One Piece Wiki wanted poster gallery</a>.</p>';
   }
   function crewRoster() {
     const mw = maxWatched();
@@ -923,11 +983,6 @@
   }
 
   /* ---------------------------------------------------------- loader */
-  const SHIP_SVG_INNER =
-    '<path d="M2 40 Q16 50 32 40 L28 46 Q16 52 6 46 Z" fill="#7a4a24"/><path d="M3 39 L31 39 L28 45 L6 45 Z" fill="#9b6233" stroke="#4a2a12" stroke-width="1"/>' +
-    '<rect x="15.5" y="6" width="2" height="34" fill="#4a2a12"/><path d="M17.5 9 Q28 18 17.5 34 Z" fill="#f6efe1" stroke="#d8c9ab" stroke-width=".8"/><path d="M15.5 13 Q8 21 15.5 32 Z" fill="#efe5cf" stroke="#d8c9ab" stroke-width=".8"/>' +
-    '<path d="M17.5 6 L25 8 L17.5 10 Z" fill="#d7263d"/>';
-
   function runLoader() {
     const L = $("#loader");
     if (!L) return;
@@ -941,7 +996,7 @@
     const step = (t) => {
       const k = clamp((t - t0) / dur, 0, 1), e = 1 - Math.pow(1 - k, 2.2);
       fill.style.width = (e * 100) + "%";
-      ship.style.left = (e * 100) + "%";
+      ship.style.setProperty("--voyage-progress", e);
       pctEl.textContent = Math.round(e * 100) + "%";
       if (k < 1) requestAnimationFrame(step);
       else { clearInterval(iv); txt.textContent = "Land ho!"; setTimeout(() => { L.classList.add("gone"); setTimeout(() => L.remove(), 700); }, 280); }
