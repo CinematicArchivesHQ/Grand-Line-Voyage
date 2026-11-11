@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Grand Line Logbook — manga data builder (run by .github/workflows/update-manga.yml).
+Grand Line Voyage — manga data builder (run by .github/workflows/update-manga.yml).
 
 Reads the One Piece Wiki (onepiece.fandom.com, CC BY-SA) through its MediaWiki API and writes js/manga.js:
   chapters: [[number, title, volume, release date], ...]
@@ -19,7 +19,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "js", "manga.js")
 EPISODES_JS = os.path.join(ROOT, "js", "episodes.js")
 API = "https://onepiece.fandom.com/api.php"
-UA = "GrandLineLogbook/1.0 (fan watch tracker; github.com/CinematicArchivesHQ/Grand-Line-Voyage)"
+UA = "GrandLineVoyage/1.0 (fan watch tracker; github.com/CinematicArchivesHQ/Grand-Line-Voyage)"
 
 
 def api(**params):

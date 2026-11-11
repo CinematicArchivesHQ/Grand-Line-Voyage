@@ -1,6 +1,6 @@
 {
-  "name": "Grand Line Logbook",
-  "short_name": "Grand Line",
+  "name": "Grand Line Voyage",
+  "short_name": "GL Voyage",
   "description": "One Piece completionist watchlist — every episode, chapter, character and bounty.",
   "start_url": "./",
   "scope": "./",

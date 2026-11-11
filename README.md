@@ -1,4 +1,4 @@
-# Grand Line Logbook — One Piece Completionist Watchlist
+# Grand Line Voyage — One Piece Completionist Watchlist
 
 A CinematicArchivesHQ fan project: a static, no-build web app for tracking every episode of the
 *One Piece* anime (1999–present).
@@ -17,7 +17,7 @@ A CinematicArchivesHQ fan project: a static, no-build web app for tracking every
 - **Where to watch** – Crunchyroll, Netflix, Hulu and JustWatch links on every season.
 - **Settings** – minutes per episode, canon-only completion mode, skip filler in "next up", export/restore JSON backups.
 
-Progress is stored in the browser's `localStorage` (key `grandline-logbook-v1`).
+Progress is stored in the browser's `localStorage` (key `grandline-logbook-v1`, kept from the original name so existing progress carries over).
 
 ## Deploy on GitHub Pages
 1. Create a repo (e.g. `onepiece-completionist-watchlist`) under CinematicArchivesHQ.

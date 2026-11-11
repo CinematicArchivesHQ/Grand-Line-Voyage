@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Grand Line Logbook — data updater (run by .github/workflows/update-data.yml).
+Grand Line Voyage — data updater (run by .github/workflows/update-data.yml).
 
 Pulls One Piece (TMDB tv id 37854) from The Movie Database and:
   * appends newly aired episodes to js/episodes.js

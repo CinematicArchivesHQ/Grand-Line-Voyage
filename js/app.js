@@ -1,5 +1,5 @@
 /* =========================================================================
-   Grand Line Logbook — One Piece (1999) completionist watchlist
+   Grand Line Voyage — One Piece (1999) completionist watchlist
    A CinematicArchivesHQ fan project. Unofficial; no video is hosted here.
    ========================================================================= */
 (function () {
@@ -624,7 +624,7 @@
   /* ------------------------------------------------------------ BOUNTIES */
   function vBounties() {
     const res = evalAch(), tb = totalBounty(), earned = res.filter((a) => a.done).length;
-    const poster = '<section class="mywanted"><div class="mw-poster"><div class="mw-top">WANTED</div><div class="mw-photo"><span>' + esc(initials(S.settings.name || "R")) + '</span></div><div class="mw-dead">DEAD OR ALIVE</div><div class="mw-name">' + esc((S.settings.name || "Rookie Pirate").toUpperCase()) + '</div><div class="mw-bounty"><span>' + BERRY + "</span>" + fmt(tb) + '<em>-</em></div><div class="mw-marine">GRAND LINE LOGBOOK</div></div>' +
+    const poster = '<section class="mywanted"><div class="mw-poster"><div class="mw-top">WANTED</div><div class="mw-photo"><span>' + esc(initials(S.settings.name || "R")) + '</span></div><div class="mw-dead">DEAD OR ALIVE</div><div class="mw-name">' + esc((S.settings.name || "Rookie Pirate").toUpperCase()) + '</div><div class="mw-bounty"><span>' + BERRY + "</span>" + fmt(tb) + '<em>-</em></div><div class="mw-marine">GRAND LINE VOYAGE</div></div>' +
       '<div class="mw-info"><div class="mw-rank">' + rankFor(tb) + '</div><h1>Bounty Board</h1><p class="muted">Every milestone raises your bounty. ' + earned + " of " + res.length + ' bounties claimed.</p>' + bar(pct(earned, res.length)) +
       '<p class="muted small">Ranks: Stowaway → Rookie → Supernova (' + shortBounty(5e7) + ") → Worst Generation (" + shortBounty(2e8) + ") → Warlord (" + shortBounty(8e8) + ") → Emperor (" + shortBounty(2e9) + ") → King of the Pirates (" + shortBounty(4e9) + ').</p><a class="btn sm" href="#helm">Change poster name</a></div></section>';
     const cats = [["Milestones", (a) => /^(first|count|allaired|ep1000|caughtup|timeskip|merry)/.test(a.id)], ["Seasons", (a) => a.id.startsWith("season")], ["Crew", (a) => a.id.startsWith("crew-")], ["Habits", (a) => /^(streak|binge|night|rate|notes|favs|filler|canon)/.test(a.id)], ["Manga", (a) => /^read/.test(a.id)], ["Side Voyages", (a) => /^(la\d|films)/.test(a.id)]];
@@ -771,7 +771,7 @@
       '<section class="card"><div class="card-h"><h2>Backup</h2></div><p class="muted">Download your full log (episodes, ratings, notes, bounties) as a JSON file, or restore one.</p>' +
       '<div class="row"><button class="btn primary" data-act="export">Export backup</button><label class="btn">Restore backup<input type="file" id="importFile" accept="application/json,.json" hidden></label></div>' +
       '<div class="danger"><h3>Danger zone</h3><p class="muted small">Erase every log entry, rating, note and bounty from this browser.</p><button class="btn danger-btn" data-act="reset">Reset everything</button></div></section></div>' +
-      '<section class="card about"><div class="card-h"><h2>About</h2></div><p>Grand Line Logbook is an unofficial, fan-made tracker from <b>CinematicArchivesHQ</b>. No episodes are hosted or streamed here. Episode titles and Japanese air dates are compiled from public episode lists; arc groupings, filler classification and character debut episodes follow common fan conventions and may differ slightly from other guides. ONE PIECE © Eiichiro Oda / Shueisha, Toei Animation.</p></section>';
+      '<section class="card about"><div class="card-h"><h2>About</h2></div><p>Grand Line Voyage is an unofficial, fan-made tracker from <b>CinematicArchivesHQ</b>. No episodes are hosted or streamed here. Episode titles and Japanese air dates are compiled from public episode lists; arc groupings, filler classification and character debut episodes follow common fan conventions and may differ slightly from other guides. ONE PIECE © Eiichiro Oda / Shueisha, Toei Animation.</p></section>';
   }
 
   /* ------------------------------------------------------------- events */
@@ -896,10 +896,10 @@
   function closeConfirm() { $("#confirm").classList.remove("open"); confirmBox._fn = null; }
 
   function exportData() {
-    const blob = new Blob([JSON.stringify(Object.assign({ app: "grand-line-logbook", exported: new Date().toISOString() }, S), null, 1)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(Object.assign({ app: "grand-line-voyage", exported: new Date().toISOString() }, S), null, 1)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "grand-line-logbook-" + todayKey() + ".json";
+    a.download = "grand-line-voyage-" + todayKey() + ".json";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     toast("Backup downloaded");
@@ -917,7 +917,7 @@
           delete S.app; delete S.exported;
           save(); checkAch(true); rerender(); toast("Backup restored");
         }, "Restore");
-      } catch (e) { toast("That file isn't a Grand Line Logbook backup"); }
+      } catch (e) { toast("That file isn't a Grand Line Voyage backup"); }
     };
     rd.readAsText(file);
   }

@@ -1,5 +1,5 @@
 /* =========================================================================
-   Grand Line Logbook — series metadata
+   Grand Line Voyage — series metadata
    Seasons follow the Japanese home-video "season" groupings used by Toei /
    Wikipedia. Arc ranges, episode types and debut episodes follow common
    fan-community conventions and are best-effort.
