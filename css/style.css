@@ -610,3 +610,12 @@ details.marc .ep-list { padding: 0 10px 12px; }
 .m-sec .rf-line { margin-top: 0; }
 .rf-chip { font-size: .72rem; font-weight: 700; color: #c9c0ff; background: rgba(155, 140, 255, .12); border: 1px solid rgba(155, 140, 255, .35); padding: 1px 7px; border-radius: 99px; white-space: nowrap; vertical-align: 1px; }
 .rf-chip.ok { color: var(--canon); background: rgba(61, 220, 151, .08); border-color: rgba(61, 220, 151, .35); }
+
+/* ------------------------------------------- modal: keep clear of the notch */
+#modal, #confirm {
+  padding: max(16px, calc(env(safe-area-inset-top) + 10px)) max(16px, env(safe-area-inset-right)) max(16px, calc(env(safe-area-inset-bottom) + 10px)) max(16px, env(safe-area-inset-left));
+}
+.m-card { max-height: calc(100vh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+@media (max-width: 720px) {
+  .m-close { width: 40px; height: 40px; right: 10px; top: 10px; font-size: 1.05rem; }
+}
