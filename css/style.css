@@ -333,6 +333,9 @@ textarea { width: 100%; min-height: 90px; resize: vertical; border-radius: 12px;
 .poster:hover { transform: rotate(0) translateY(-3px) scale(1.01); }
 .poster::before { content: ""; position: absolute; top: -6px; left: 50%; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ff6b6b, #8d0f1f); box-shadow: 0 2px 3px rgba(0, 0, 0, .4); transform: translateX(-50%); }
 .p-art { display: block; width: 100%; height: 240px; object-fit: contain; margin: 0 auto 10px; }
+.p-reveal { margin-bottom: 10px; }
+.p-reveal summary { cursor: pointer; color: #8d0f1f; font: 700 .8rem var(--sans); padding: 4px 0; }
+.p-reveal .p-art { margin: 6px auto 0; }
 .p-wanted { font: 700 2rem/1 var(--display); text-align: center; letter-spacing: 2px; color: #3a250f; }
 .p-photo { position: relative; margin: 8px 0 10px; height: 118px; border: 3px solid #5a3a1a; background: linear-gradient(135deg, color-mix(in srgb, var(--g) 55%, #e8d3a6), color-mix(in srgb, var(--g) 25%, #c9a86a)); display: grid; place-items: center; overflow: hidden; }
 .p-photo::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, rgba(0, 0, 0, .04) 0 2px, transparent 2px 6px); }
@@ -358,6 +361,8 @@ textarea { width: 100%; min-height: 90px; resize: vertical; border-radius: 12px;
   background: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, .35), transparent 60%), linear-gradient(180deg, var(--parch), var(--parch-2)); box-shadow: 0 18px 40px rgba(0, 0, 0, .5); }
 .mw-top { font: 700 3.2rem/1 var(--display); letter-spacing: 3px; }
 .mw-photo { height: 170px; margin: 10px 0; border: 4px solid #5a3a1a; display: grid; place-items: center; background: linear-gradient(135deg, #e7cf9c, #b88d4c); }
+.mw-photo img { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; }
+.field input[type=file] { min-width: 0; }
 .mw-photo span { font: 700 5rem/1 var(--display); color: rgba(43, 27, 11, .75); }
 .mw-dead { font: 800 1.15rem var(--serif); letter-spacing: .25em; }
 .mw-name { font: 800 1.5rem/1.1 var(--serif); margin: 6px 0; overflow-wrap: anywhere; }

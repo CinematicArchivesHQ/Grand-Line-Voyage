@@ -84,7 +84,7 @@
   /* --------------------------------------------------------------- state */
   const DEFAULT = () => ({
     v: 1, watched: {}, bulk: {}, ratings: {}, notes: {}, favs: {}, side: {}, ach: {}, read: {}, readBulk: {},
-    settings: { name: "Rookie Pirate", minutes: 24, goal: 3, spoiler: true, completion: "all", skipFiller: false, reduceMotion: false, art: true },
+    settings: { name: "Rookie Pirate", posterPhoto: "", minutes: 24, goal: 3, spoiler: true, completion: "all", skipFiller: false, reduceMotion: false, art: true },
     created: Date.now()
   });
   function load() {
@@ -595,7 +595,7 @@
     "garp": null,
     "hancock": 415,
     "hawkins": null,
-    "higuma": null,
+    "higuma": 4,
     "jinbe": 570,
     "kaido": null,
     "kid": null,
@@ -631,10 +631,12 @@
     const crew = aboard ? M.CREW_JOINS.find((x) => x.id === c.id) : null;
     const reveal = WANTED_POSTERS[c.id];
     const showPoster = reveal !== undefined && (!S.settings.spoiler || (reveal !== null && maxWatched() >= reveal));
+    const posterImage = reveal === undefined ? "" : '<img class="p-art" src="assets/wanted/' + c.id + '.webp" alt="' + esc(c.name) + ' wanted poster" loading="lazy" decoding="async">';
+    const posterFallback = '<div class="p-wanted">WANTED</div><div class="p-photo"><span>' + esc(initials(c.name)) + '</span><em class="p-group">' + esc(g) + "</em></div>";
+    const posterReveal = posterImage && !showPoster
+      ? '<details class="p-reveal"><summary>Show poster (bounty spoilers)</summary>' + posterImage + '</details>' : "";
     return '<article class="poster" style="--g:' + (GROUP_COLOR[g] || "#c9b58b") + '">' +
-      (showPoster
-        ? '<img class="p-art" src="assets/wanted/' + c.id + '.webp" alt="' + esc(c.name) + ' wanted poster" loading="lazy" decoding="async">'
-        : '<div class="p-wanted">WANTED</div><div class="p-photo"><span>' + esc(initials(c.name)) + '</span><em class="p-group">' + esc(g) + "</em></div>") +
+      (showPoster ? posterImage : posterFallback + posterReveal) +
       '<div class="p-name">' + esc(c.name) + "</div>" + (c.epithet ? '<div class="p-epi">“' + esc(c.epithet) + "”</div>" : "") +
       (crew ? '<div class="p-crew">Straw Hat Pirates · ' + esc(crew.role) + "</div>" : "") +
       '<p class="p-bio">' + esc(c.bio) + "</p>" +
@@ -669,7 +671,7 @@
       body = grid(list);
     }
     return '<div class="page-h"><h1>Crew &amp; Characters</h1><p class="muted">' + CHARS.length + " key characters, ordered by first anime appearance. " + (S.settings.spoiler ? "Spoiler shield is on — characters unlock as you watch their debut episode (" + unlocked + " of " + CHARS.length + " unlocked)." : "Spoiler shield is off — everyone is visible.") + "</p></div>" +
-      crewRoster() + controls + (body || '<p class="muted center">No characters match.</p>') +
+      crewRoster() + controls + (S.settings.spoiler ? '<p class="muted small">The spoiler shield hides later bounties. Use “Show poster” on an unlocked character to reveal their artwork.</p>' : "") + (body || '<p class="muted center">No characters match.</p>') +
       '<p class="muted small">Poster artwork from the <a href="https://onepiece.fandom.com/wiki/Bounty/Gallery" target="_blank" rel="noopener noreferrer">One Piece Wiki wanted poster gallery</a>.</p>';
   }
   function crewRoster() {
@@ -682,11 +684,20 @@
   }
 
   /* ------------------------------------------------------------ BOUNTIES */
+  function posterPhoto() {
+    const photo = S.settings.posterPhoto;
+    return typeof photo === "string" && photo.length < 1000000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(photo) ? photo : "";
+  }
+  function personalPosterPhoto() {
+    const photo = posterPhoto();
+    return '<div class="mw-photo">' + (photo ? '<img src="' + photo + '" alt="Your wanted poster photo">'
+      : '<span>' + esc(initials(S.settings.name || "R")) + '</span>') + '</div>';
+  }
   function vBounties() {
     const res = evalAch(), tb = totalBounty(), earned = res.filter((a) => a.done).length;
-    const poster = '<section class="mywanted"><div class="mw-poster"><div class="mw-top">WANTED</div><div class="mw-photo"><span>' + esc(initials(S.settings.name || "R")) + '</span></div><div class="mw-dead">DEAD OR ALIVE</div><div class="mw-name">' + esc((S.settings.name || "Rookie Pirate").toUpperCase()) + '</div><div class="mw-bounty"><span>' + BERRY + "</span>" + fmt(tb) + '<em>-</em></div><div class="mw-marine">GRAND LINE VOYAGE</div></div>' +
+    const poster = '<section class="mywanted"><div class="mw-poster"><div class="mw-top">WANTED</div>' + personalPosterPhoto() + '<div class="mw-dead">DEAD OR ALIVE</div><div class="mw-name">' + esc((S.settings.name || "Rookie Pirate").toUpperCase()) + '</div><div class="mw-bounty"><span>' + BERRY + "</span>" + fmt(tb) + '<em>-</em></div><div class="mw-marine">GRAND LINE VOYAGE</div></div>' +
       '<div class="mw-info"><div class="mw-rank">' + rankFor(tb) + '</div><h1>Bounty Board</h1><p class="muted">Every milestone raises your bounty. ' + earned + " of " + res.length + ' bounties claimed.</p>' + bar(pct(earned, res.length)) +
-      '<p class="muted small">Ranks: Stowaway → Rookie → Supernova (' + shortBounty(5e7) + ") → Worst Generation (" + shortBounty(2e8) + ") → Warlord (" + shortBounty(8e8) + ") → Emperor (" + shortBounty(2e9) + ") → King of the Pirates (" + shortBounty(4e9) + ').</p><a class="btn sm" href="#helm">Change poster name</a></div></section>';
+      '<p class="muted small">Ranks: Stowaway → Rookie → Supernova (' + shortBounty(5e7) + ") → Worst Generation (" + shortBounty(2e8) + ") → Warlord (" + shortBounty(8e8) + ") → Emperor (" + shortBounty(2e9) + ") → King of the Pirates (" + shortBounty(4e9) + ').</p><a class="btn sm" href="#helm">Edit wanted poster</a></div></section>';
     const cats = [["Milestones", (a) => /^(first|count|allaired|ep1000|caughtup|timeskip|merry)/.test(a.id)], ["Seasons", (a) => a.id.startsWith("season")], ["Crew", (a) => a.id.startsWith("crew-")], ["Habits", (a) => /^(streak|binge|night|rate|notes|favs|filler|canon)/.test(a.id)], ["Manga", (a) => /^read/.test(a.id)], ["Side Voyages", (a) => /^(la\d|films)/.test(a.id)]];
     const grid = cats.map(([name, f]) => '<section><h2 class="cat-h">' + name + '</h2><div class="ach-grid">' + res.filter(f).map((a) => {
       const secret = a.hidden && !a.done;
@@ -819,7 +830,10 @@
     return '<div class="page-h"><h1>Settings &amp; Backup</h1><p class="muted">Your progress lives in this browser only (localStorage). Export a backup to move devices or keep it safe.' + (storageOK ? "" : ' <b class="warn">Storage is unavailable in this browser — progress will not persist.</b>') + "</p></div>" +
       '<div class="cols two">' +
       '<section class="card"><div class="card-h"><h2>Quick start</h2></div><p class="muted">Already partway through? Mark everything up to an episode in one go.</p><div class="row"><input id="uptoN" type="number" min="1" max="' + LAST + '" placeholder="e.g. 516"><button class="btn primary" data-act="uptoInput">Mark 1 → N watched</button></div></section>' +
-      '<section class="card"><div class="card-h"><h2>Your wanted poster</h2></div><label class="field">Pirate name<input id="setName" maxlength="28" value="' + esc(st.name) + '"></label></section>' +
+      '<section class="card"><div class="card-h"><h2>Your wanted poster</h2></div><label class="field">Pirate name<input id="setName" maxlength="28" value="' + esc(st.name) + '"></label>' +
+      '<label class="field">Poster photo<input id="setPosterPhoto" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="posterPhotoHelp"></label>' +
+      '<p id="posterPhotoHelp" class="muted small">Choose a JPG, PNG, or WebP up to 20 MB. The photo stays in this browser and is included in your backup.</p>' +
+      (posterPhoto() ? personalPosterPhoto() + '<button class="btn sm" type="button" data-act="removePosterPhoto">Remove photo</button>' : "") + '</section>' +
       '<section class="card"><div class="card-h"><h2>Voyage</h2></div>' +
       '<label class="field">Minutes per episode <span class="muted">(24 full · ~20 skipping OP/ED)</span><input id="setMin" type="number" min="1" max="60" value="' + st.minutes + '"></label>' +
       '<label class="field">Daily goal (episodes) <span class="muted">used for ETA until you have a pace</span><input id="setGoal" type="number" min="1" max="100" value="' + st.goal + '"></label>' +
@@ -840,6 +854,7 @@
     if (!t) { if (ev.target.id === "modal") closeModal(); return; }
     const act = t.dataset.act, n = +t.dataset.ep;
     switch (act) {
+      case "removePosterPhoto": setPosterPhoto(""); break;
       case "toggle": {
         const was = isW(n); toggle(n);
         if (!was) toast("✓ Logged episode " + n);
@@ -894,6 +909,7 @@
     if (t.dataset.act === "spoiler") { S.settings.spoiler = t.checked; commit(true); return; }
     if (t.id === "crewGroup") { UI.crewGroup = t.value; rerender(); return; }
     const st = S.settings;
+    if (t.id === "setPosterPhoto") { uploadPosterPhoto(t.files[0], t); return; }
     if (t.id === "setName") st.name = t.value.trim() || "Rookie Pirate";
     else if (t.id === "setMin") st.minutes = clamp(+t.value || 24, 1, 60);
     else if (t.id === "setGoal") st.goal = clamp(+t.value || 3, 1, 100);
@@ -954,6 +970,49 @@
     $("#confirmYes").focus();
   }
   function closeConfirm() { $("#confirm").classList.remove("open"); confirmBox._fn = null; }
+
+  let posterPhotoRequest = 0;
+  function setPosterPhoto(photo) {
+    posterPhotoRequest++;
+    const oldPhoto = S.settings.posterPhoto;
+    S.settings.posterPhoto = photo;
+    save();
+    if (!storageOK) {
+      S.settings.posterPhoto = oldPhoto;
+      toast("Could not save the change. Browser storage is full or unavailable.");
+      return;
+    }
+    rerender();
+    toast(photo ? "Wanted poster photo saved" : "Wanted poster photo removed");
+  }
+  async function uploadPosterPhoto(file, input) {
+    if (!file) return;
+    const request = ++posterPhotoRequest, state = S;
+    input.value = "";
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 20 * 1024 * 1024) {
+      toast("Choose a JPG, PNG, or WebP image up to 20 MB.");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    try {
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      const scale = Math.min(1, 720 / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#e7cf9c";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      if (request === posterPhotoRequest && state === S) setPosterPhoto(canvas.toDataURL("image/jpeg", .86));
+    } catch (e) {
+      if (request === posterPhotoRequest && state === S) toast("That image could not be opened.");
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
 
   function exportData() {
     const blob = new Blob([JSON.stringify(Object.assign({ app: "grand-line-voyage", exported: new Date().toISOString() }, S), null, 1)], { type: "application/json" });
