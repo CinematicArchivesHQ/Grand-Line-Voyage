@@ -98,7 +98,7 @@ input, select, textarea { font: inherit; color: var(--text); }
 /* ----------------------------------------------------------------- header */
 .top {
   position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 18px;
-  padding: 10px clamp(14px, 3vw, 32px); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  padding: calc(10px + env(safe-area-inset-top)) max(clamp(14px, 3vw, 32px), env(safe-area-inset-right)) 10px max(clamp(14px, 3vw, 32px), env(safe-area-inset-left)); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   background: linear-gradient(180deg, rgba(5, 20, 39, .92), rgba(5, 20, 39, .72)); border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none !important; flex-shrink: 0; }
