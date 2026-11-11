@@ -429,6 +429,19 @@ window.OP_META = (function () {
     { after: 1086, seq: [1029, 1030, X("special", "shanks-log", "TV Special: The Captain's Log of the Legend! Red-Haired Shanks!"), MOV(15), COVER("cs-germa", "Germa (part 1 only)", "Only the first half is spoiler-safe at this point.")] },
     { after: 1122, seq: [X("special", "navy-log", "Recap special: Unwavering Justice! The Navy's Proud Log!", "Aired during the 2024–25 break (newer than the original guide)."), X("special", "egghead-recap", "Recap special: One Piece Egghead Arc Recap", "Aired April 2025 before the anime resumed (newer than the original guide).")] }
   ];
+  // Release / premiere dates (Japan) used for "release date" placement. Cover stories have no single date.
+  const EXTRA_DATES = {
+    "films:1": "2000-03-04", "films:2": "2001-03-03", "films:3": "2002-03-02", "films:4": "2003-03-01", "films:5": "2004-03-06",
+    "films:6": "2005-03-05", "films:7": "2006-03-04", "films:8": "2007-03-03", "films:9": "2008-03-01", "films:10": "2009-12-12",
+    "films:11": "2011-03-19", "films:12": "2012-12-15", "films:13": "2016-07-23", "films:14": "2019-08-09", "films:15": "2022-08-06",
+    sp1: "2000-12-20", sp2: "2003-04-06", sp3: "2003-12-14", sp4: "2005-12-18", eonami: "2012-08-25", eoluffy: "2012-12-15", eomerry: "2013-08-24",
+    "3d2y": "2014-08-30", eosabo: "2015-08-22", nebulandia: "2015-12-19", "heart-gold": "2016-07-16", eoeb: "2017-08-26", eosky: "2018-08-25",
+    "shanks-log": "2022-08-28", "navy-log": "2024-09-29", "fan-letter": "2024-10-20", "egghead-recap": "2025-04-05",
+    ganzack: "1998-07-26", "romance-dawn": "2008-09-21", monsters: "2024-01-21",
+    "jango-dance": "2001-03-03", soccer: "2002-03-02", baseball: "2004-03-06", "sw-ep0": "2009-12-12", "trap-coaster": "2011-12-01", glorious: "2012-12-23", "gold-ep0": "2016-07-02",
+    toriko1: "2011-04-03", toriko51: "2012-04-08", toriko99: "2013-04-07", "ace-novel": "2018-04-04"
+  };
+  WATCH_ORDER.forEach((b) => b.seq.forEach((t) => { if (typeof t === "object") t.date = EXTRA_DATES[t.id] || ""; }));
   // Openings that spoil later events for first-timers: [from, to, label]
   const OP_SPOILERS = [[116, 130, "Opening 3"], [264, 278, "Opening 6"], [629, 635, "Opening 17"], [892, 913, "Opening 22"], [976, 988, "Opening 23 (version 2)"]];
   const WATCH_ORDER_SOURCE = "https://www.reddit.com/r/OnePiece/comments/tr0izv/watch_order_for_movies_specials_cover_stories_etc/";
