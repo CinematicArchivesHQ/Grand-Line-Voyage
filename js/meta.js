@@ -380,6 +380,16 @@ window.OP_META = (function () {
     "Straw Hat's Separation Serial": "Expanded from what the crew went through during the timeskip"
   };
 
+  // Episodes that animate a cover story (the mini-serial told on chapter title pages).
+  // These keep their normal type (filler / mixed) for progress and skipping, plus a "Cover story" tag.
+  // ch = the exact title pages used; range = the whole serial when the split isn't known.
+  const COVER_EPS = {
+    46: { story: "Buggy's Crew Adventure Chronicles", ch: [35, 37, 39, 40, 42, 43, 46, 47, 48, 50, 51, 53, 54] },
+    47: { story: "Buggy's Crew Adventure Chronicles", ch: [36, 55, 57, 58, 59, 60, 62, 63, 65, 66, 67, 68, 71, 72, 73, 74, 75] },
+    68: { story: "Diary of Koby-Meppo", range: [83, 119] },
+    69: { story: "Diary of Koby-Meppo", range: [83, 119] }
+  };
+
   // Where to watch. Catalogs rotate by region, so these are live search links rather than fixed claims.
   const STREAMING = [
     { name: "Crunchyroll", note: "Full series, subtitled; most of it dubbed. New episodes simulcast.", url: "https://www.crunchyroll.com/search?q=one%20piece" },
@@ -446,5 +456,5 @@ window.OP_META = (function () {
   const OP_SPOILERS = [[116, 130, "Opening 3"], [264, 278, "Opening 6"], [629, 635, "Opening 17"], [892, 913, "Opening 22"], [976, 988, "Opening 23 (version 2)"]];
   const WATCH_ORDER_SOURCE = "https://www.reddit.com/r/OnePiece/comments/tr0izv/watch_order_for_movies_specials_cover_stories_etc/";
 
-  return { WATCH_ORDER, OP_SPOILERS, WATCH_ORDER_SOURCE, MANGA, ONE_TO_ONE, MANGA_NOTE, STREAMING, SEASONS, ARCS, FILLER, MIXED, RECAP, HIGHLIGHTS, CREW_JOINS, CHARACTERS, SIDE };
+  return { COVER_EPS, WATCH_ORDER, OP_SPOILERS, WATCH_ORDER_SOURCE, MANGA, ONE_TO_ONE, MANGA_NOTE, STREAMING, SEASONS, ARCS, FILLER, MIXED, RECAP, HIGHLIGHTS, CREW_JOINS, CHARACTERS, SIDE };
 })();

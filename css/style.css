@@ -619,3 +619,11 @@ details.marc .ep-list { padding: 0 10px 12px; }
 @media (max-width: 720px) {
   .m-close { width: 40px; height: 40px; right: 10px; top: 10px; font-size: 1.05rem; }
 }
+.b-cover { color: #c9c0ff; border-color: rgba(155, 140, 255, .45); background: rgba(155, 140, 255, .1); margin-left: 4px; }
+.ep-row .badge.b-cover { margin-left: 0; }
+.tags { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.tags .b-cover { margin-left: 0; }
+@media (max-width: 720px) {
+  .ep-row .tags { grid-column: 3; grid-row: 3; justify-self: start; }
+  .ep-row .tags .badge { grid-column: auto; grid-row: auto; }
+}

@@ -40,7 +40,7 @@
     const type = inR(n, M.FILLER) ? "filler" : inR(n, M.MIXED) ? "mixed" : inR(n, M.RECAP) ? "recap" : "canon";
     const s = M.SEASONS.find((x) => n >= x.start && n <= x.end);
     const arc = (M.ARCS.find(([a, b]) => n >= a && n <= b) || [0, 0, s.title])[2];
-    return { n, t, d, type, s: s.n, arc, year: Number(d.slice(0, 4)) };
+    return { n, t, d, type, cover: M.COVER_EPS[n] || null, s: s.n, arc, year: Number(d.slice(0, 4)) };
   });
   const EPN = {};
   EP.forEach((e) => { EPN[e.n] = e; SEASON_BY_EP[e.n] = e.s; });
@@ -56,7 +56,10 @@
   const chArc = (n) => (MARCS.filter((r) => n >= r.a && n <= r.b).pop() || { name: "Other" }).name;
   const chRange = (list) => { if (!list.length) return null; const a = Math.min(...list), b = Math.max(...list); return a === b ? "Ch. " + a : "Ch. " + a + "–" + b; };
   const epsChapters = (eps) => { const out = []; eps.forEach((e) => (EP_CH[e.n] || []).forEach((c) => out.push(c))); return out; };
+  const coverChs = (cv) => cv.ch || (() => { const o = []; for (let c = cv.range[0]; c <= cv.range[1]; c++) o.push(c); return o; })();
+  const coverWhere = (cv) => "title pages of " + (cv.ch ? chWord(cv.ch) : "Chapters " + cv.range[0] + "–" + cv.range[1]);
   function manga(e) {
+    if (e.cover) return { text: "Cover story · " + e.cover.story + " — " + coverWhere(e.cover), short: "Cover story" };
     if (EP_CH[e.n]) { const r = chRange(EP_CH[e.n]); return { text: (EP_CH[e.n].length > 1 ? "Chapters " : "Chapter ") + r.slice(4), short: r }; }
     const one = M.ONE_TO_ONE.find((o) => e.n >= o.from);
     if (one && e.type !== "filler") return { text: "Chapter " + (e.n - one.offset), short: "Ch. " + (e.n - one.offset) };
@@ -341,6 +344,7 @@
 
   /* ------------------------------------------------------------- pieces */
   const badge = (t) => '<span class="badge b-' + t + '">' + TYPE_LABEL[t] + "</span>";
+  const tags = (e) => e.cover ? '<span class="tags">' + badge(e.type) + '<span class="badge b-cover">Cover story</span></span>' : badge(e.type);
   const ring = (p, size = 64, stroke = 6, color = "var(--gold)") => {
     const r = (size - stroke) / 2, c = 2 * Math.PI * r;
     return '<svg class="ring" width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + " " + size + '" aria-hidden="true"><circle cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="' + stroke + '"/><circle cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" stroke-linecap="round" stroke-dasharray="' + (c * p / 100) + " " + c + '" transform="rotate(-90 ' + size / 2 + " " + size / 2 + ')"/></svg>';
@@ -361,6 +365,11 @@
   function readFirst(e, compact) {
     if (readStyle() !== "manga" || !MG) return "";
     const all = EP_CH[e.n] || [], un = epUnread(e.n);
+    if (e.cover && !all.length) {
+      const left = coverChs(e.cover).filter((c) => !S.read[c]);
+      return left.length ? '<div class="rf-line muted">📖 Cover story — nothing extra to read. It\'s told on the ' + coverWhere(e.cover) + ", which you'll see as you read those chapters.</div>"
+        : '<div class="rf-line ok">✓ You\'ve already seen this cover story on the ' + coverWhere(e.cover) + ".</div>";
+    }
     if (!all.length) return e.type === "filler" || e.type === "recap" ? '<div class="rf-line muted">📖 Nothing to read — anime-only episode.</div>' : "";
     if (!un.length) return '<div class="rf-line ok">✓ Caught up on the manga for this episode (' + chWord(all) + ").</div>";
     return '<div class="rf-line"><span>📖 <b>Read first:</b> ' + chWord(un) + (un.length < all.length ? " (" + un.length + " left)" : "") + "</span>" +
@@ -373,7 +382,7 @@
       '<span class="ep-num">' + e.n + "</span>" +
       '<button class="ep-title" data-act="open" data-ep="' + e.n + '">' + esc(e.t) + (hl ? ' <span class="hl" title="' + esc(hl) + '">✦</span>' : "") + (S.notes[e.n] ? ' <span class="has-note" title="Has notes">✎</span>' : "") +
       (readStyle() === "manga" && EP_CH[e.n] && !isW(e.n) ? (epUnread(e.n).length ? ' <span class="rf-chip" title="Read before watching">📖 ' + chList(epUnread(e.n)) + "</span>" : ' <span class="rf-chip ok" title="Chapters read">📖 ✓</span>') : "") + "</button>" +
-      '<span class="ep-date">' + niceDate(e.d) + "</span>" + badge(e.type) +
+      '<span class="ep-date">' + niceDate(e.d) + "</span>" + tags(e) +
       '<button class="fav' + (S.favs[e.n] ? " on" : "") + '" data-act="fav" data-ep="' + e.n + '" aria-label="Favorite">' + (S.favs[e.n] ? "★" : "☆") + "</button></div>";
   }
 
@@ -387,7 +396,7 @@
     const eta = remaining ? new Date(Date.now() + Math.ceil(remaining / rate) * DAY) : null;
     const act = activity(), st = streaks(act);
     let hero;
-    const qItem = (t) => t.ep ? '<button class="q-item" data-act="open" data-ep="' + t.ep.n + '"><b>' + t.ep.n + "</b><span>" + esc(t.ep.t) + "</span>" + badge(t.ep.type) + "</button>"
+    const qItem = (t) => t.ep ? '<button class="q-item" data-act="open" data-ep="' + t.ep.n + '"><b>' + t.ep.n + "</b><span>" + esc(t.ep.t) + "</span>" + tags(t.ep) + "</button>"
       : '<a class="q-item q-x" href="#side"><b>✦</b><span>' + esc(t.x.title) + '</span><span class="badge b-x">' + XTYPE[t.x.type] + "</span></a>";
     const queue = '<div class="queue"><div class="queue-h">Then…' + (orderMode() === "guide" ? " · community watch order" : orderMode() === "release" ? " · by release date" : "") + "</div>" + ups.slice(1).map(qItem).join("") + "</div>";
     if (first && first.x) {
@@ -404,7 +413,7 @@
         '<div class="hero-kicker">Next on the voyage</div>' +
         '<div class="hero-ep">Episode ' + nx.n + "</div>" +
         '<h1 class="hero-title">' + esc(nx.t) + "</h1>" +
-        '<div class="hero-meta"><span>Season ' + s.n + " · " + esc(s.title) + "</span><span>" + esc(nx.arc) + " arc</span><span>Aired " + niceDate(nx.d) + "</span>" + badge(nx.type) + "</div>" +
+        '<div class="hero-meta"><span>Season ' + s.n + " · " + esc(s.title) + "</span><span>" + esc(nx.arc) + " arc</span><span>Aired " + niceDate(nx.d) + "</span>" + tags(nx) + "</div>" +
         (hl ? '<div class="hero-hl">✦ ' + esc(hl) + "</div>" : "") +
         (manga(nx) ? '<div class="hero-manga">📖 ' + esc(manga(nx).text) + "</div>" : "") +
         (stillOf(nx.n) && stillOK(nx.n) ? '<img onerror="this.remove()" class="hero-still" src="' + IMG + "w500" + stillOf(nx.n) + '" alt="" loading="lazy">' : "") +
@@ -502,11 +511,11 @@
       filterBar(true) + results + '<div class="season-grid">' + grid + "</div>";
   }
   function filterBar(withSearch) {
-    const chips = ["all", "canon", "mixed", "filler", "recap"].map((t) => '<button class="chip' + (UI.type === t ? " on" : "") + '" data-act="ftype" data-v="' + t + '">' + (t === "all" ? "All" : TYPE_LABEL[t]) + "</button>").join("");
+    const chips = ["all", "canon", "mixed", "filler", "recap", "cover"].map((t) => '<button class="chip' + (UI.type === t ? " on" : "") + '" data-act="ftype" data-v="' + t + '">' + (t === "all" ? "All" : t === "cover" ? "Cover story" : TYPE_LABEL[t]) + "</button>").join("");
     return '<div class="filterbar">' + (withSearch ? '<input id="logSearch" class="search" type="search" placeholder="Search titles, arcs or an episode number…" value="' + esc(UI.q) + '" aria-label="Search episodes">' : "") +
       '<div class="chips">' + chips + '<label class="tog"><input type="checkbox" data-act="hidew"' + (UI.hideWatched ? " checked" : "") + "> Hide watched</label></div></div>";
   }
-  const passFilter = (e) => (UI.type === "all" || e.type === UI.type) && !(UI.hideWatched && isW(e.n));
+  const passFilter = (e) => (UI.type === "all" || e.type === UI.type || (UI.type === "cover" && e.cover)) && !(UI.hideWatched && isW(e.n));
 
   function vSeason(n) {
     const s = SEASON[n], pr = progress(s.eps), mp = minsPer();
@@ -549,11 +558,11 @@
     const mg = manga(e);
     $("#modalBody").innerHTML = st +
       '<div class="m-head" style="--accent:' + s.color + '"><div class="m-kicker">Season ' + s.n + " · " + esc(s.title) + " · " + esc(e.arc) + '</div><div class="m-num">Episode ' + n + "</div><h2>" + esc(e.t) + "</h2>" +
-      '<div class="m-meta">' + badge(e.type) + "<span>Aired " + niceDate(e.d) + " (" + ago(e.d) + ")</span><span>≈ " + minsPer() + " min</span></div></div>" +
+      '<div class="m-meta">' + tags(e) + "<span>Aired " + niceDate(e.d) + " (" + ago(e.d) + ")</span><span>≈ " + minsPer() + " min</span></div></div>" +
       (hl ? '<div class="m-hl">✦ ' + esc(hl) + "</div>" : "") +
       (MOVED[n] != null ? '<p class="m-note">↪ The community watch order suggests watching this after Episode ' + MOVED[n] + ".</p>" : "") +
       (S.settings.spoiler && !w && opSpoiler(n) ? '<p class="m-note">⚠️ First-timer tip: skip the opening — ' + opSpoiler(n)[2] + " shows spoilers.</p>" : "") +
-      (e.type === "filler" ? '<p class="m-note">Anime-original filler — skippable without missing the main story, though some are genuinely fun.</p>' : e.type === "mixed" ? '<p class="m-note">Mixed — mostly canon with some anime-original padding.</p>' : e.type === "recap" ? '<p class="m-note">Recap / retrospective episode.</p>' : "") +
+      (e.cover ? '<p class="m-note">Adapts a <b>cover story</b>, ' + esc(e.cover.story) + ": the mini-story Oda tells one panel at a time on the manga's chapter title pages. Oda's own story, with anime-original padding — so it's tagged " + TYPE_LABEL[e.type].toLowerCase() + " for progress and skipping too.</p>" : e.type === "filler" ? '<p class="m-note">Anime-original filler — skippable without missing the main story, though some are genuinely fun.</p>' : e.type === "mixed" ? '<p class="m-note">Mixed — mostly canon with some anime-original padding.</p>' : e.type === "recap" ? '<p class="m-note">Recap / retrospective episode.</p>' : "") +
       '<div class="m-actions"><button class="btn ' + (w ? "" : "primary") + '" data-act="toggle" data-ep="' + n + '">' + (w ? "✓ Watched — undo" : "Mark watched") + '</button><button class="btn" data-act="upto" data-ep="' + n + '">Mark all up to here</button><button class="btn ghost fav' + (S.favs[n] ? " on" : "") + '" data-act="fav" data-ep="' + n + '">' + (S.favs[n] ? "★ Favorite" : "☆ Favorite") + "</button></div>" +
       (w ? '<div class="m-when"><label for="watchDate">Watched on</label><input type="date" id="watchDate" data-ep="' + n + '" value="' + dayKey(S.watched[n]) + '" min="' + e.d + '" max="' + todayKey() + '">' +
         (S.bulk[n] ? '<span class="muted">Bulk-marked — set the real date and it will count toward your streaks and activity.</span>' : '<span class="muted">Change it if you watched this on another day.</span>') + "</div>" : "") +
