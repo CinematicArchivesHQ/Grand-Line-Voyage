@@ -141,6 +141,11 @@ window.GLV_PORTRAITS = {
 "p": "Chouchou",
 "r": 0
 },
+"clover": {
+"f": "Clou D. Clover Anime Infobox.png",
+"p": "Clou D. Clover",
+"r": 0
+},
 "cobra": {
 "f": "Nefertari Cobra Anime Pre Timeskip Infobox.png",
 "p": "Nefertari Cobra",
@@ -491,6 +496,11 @@ window.GLV_PORTRAITS = {
 "p": "Leo",
 "r": 0
 },
+"lilith": {
+"f": "Lilith Anime Infobox.png",
+"p": "Vegapunk/Lilith",
+"r": 0
+},
 "loki": {
 "f": "Loki Anime Infobox.png",
 "p": "Loki",
@@ -711,6 +721,11 @@ window.GLV_PORTRAITS = {
 "p": "Gol D. Roger",
 "r": 0
 },
+"ryuma": {
+"f": "Shimotsuki Ryuma Anime Infobox.png",
+"p": "Shimotsuki Ryuma",
+"r": 0
+},
 "sabo": {
 "f": "Sabo Anime Infobox.png",
 "p": "Sabo",
@@ -769,6 +784,11 @@ window.GLV_PORTRAITS = {
 "shoujou": {
 "f": "Shoujou Anime Infobox.png",
 "p": "Shoujou",
+"r": 0
+},
+"shyarly": {
+"f": "Shyarly Anime Infobox.png",
+"p": "Shyarly",
 "r": 0
 },
 "smoker": {

@@ -1,26 +1,10 @@
 # Character pictures
 
-178 of 195 characters have a picture. Pictures come from each character's One Piece Wiki page, preferring the earliest (pre-time-skip) anime look.
+182 of 182 characters have a picture. Pictures come from each character's One Piece Wiki page, preferring the earliest (pre-time-skip) anime look.
 
 ## Worth a look
 
-- **Ninjin, Piiman & Tamanegi** (`usopp-pirates`, debuts Ep 9): no wiki page
-- **Sham & Buchi** (`nyaban`, debuts Ep 12): no wiki page
-- **Johnny & Yosaku** (`johnny-yosaku`, debuts Ep 19): no wiki page
-- **Patty & Carne** (`patty-carne`, debuts Ep 20): no wiki page
-- **Kuroobi & Chew** (`kuroobi-chew`, debuts Ep 31): no wiki page
-- **Mr. 5 & Miss Valentine** (`mr5`, debuts Ep 65): no wiki page
-- **Dorry & Brogy** (`dorry-brogy`, debuts Ep 70): no wiki page
-- **Mr. 1 & Miss Doublefinger** (`mr1`, debuts Ep 103): no wiki page
-- **Conis & Pagaya** (`conis`, debuts Ep 153): no wiki page
-- **Kokoro & Chimney** (`kokoro`, debuts Ep 229): no wiki page
-- **Professor Clover** (`clover`, debuts Ep 275): no wiki page
-- **Ryuma** (`ryuma`, debuts Ep 362): disambiguation page — add to TITLES
-- **Camie & Pappag** (`camie`, debuts Ep 387): no wiki page
-- **Boa Sandersonia & Marigold** (`gorgon`, debuts Ep 410): no wiki page
-- **Madam Shyarly** (`shyarly`, debuts Ep 529): no wiki page
-- **The One-Legged Toy Soldier** (`soldier`, debuts Ep 651): no wiki page
-- **Vegapunk Lilith** (`lilith`, debuts Ep 1090): no wiki page
+Nothing flagged.
 
 ## Everything
 
@@ -49,24 +33,19 @@
 | Kaya | Kaya | Kaya Anime Pre Timeskip Infobox.png |
 | Klahadore | Kuro | Kuro Anime Infobox.png |
 | Merry | Merry | Merry Anime Pre Timeskip Infobox.png |
-| Ninjin, Piiman & Tamanegi | Ninjin, Piiman & Tamanegi | — |
 | Jango | Jango | Jango Anime Infobox.png |
-| Sham & Buchi | Sham & Buchi | — |
 | Gaimon | Gaimon | Gaimon Anime Infobox.png |
 | Kuina | Shimotsuki Kuina | Shimotsuki Kuina Anime Infobox.png |
 | Koshiro | Shimotsuki Koushirou | Shimotsuki Koushirou Anime Pre Timeskip Infobox.png |
-| Johnny & Yosaku | Johnny & Yosaku | — |
 | Sanji | Sanji | Sanji Anime Pre Timeskip Infobox.png |
 | Zeff | Zeff | Zeff Anime Infobox.png |
 | Fullbody | Fullbody | Fullbody Anime Infobox.png |
 | Gin | Gin | Gin Anime Infobox.png |
-| Patty & Carne | Patty & Carne | — |
 | Don Krieg | Krieg | Krieg Anime Infobox.png |
 | Dracule Mihawk | Dracule Mihawk | Dracule Mihawk Anime Infobox.png |
 | Pearl | Pearl | Pearl Anime Infobox.png |
 | Arlong | Arlong | Arlong Anime Infobox.png |
 | Hatchan | Hatchan | Hatchan Anime Infobox.png |
-| Kuroobi & Chew | Kuroobi & Chew | — |
 | Nojiko | Nojiko | Nojiko Anime Pre Timeskip Infobox.png |
 | Genzo | Genzo | Genzo Anime Pre Timeskip Infobox.png |
 | Nezumi | Nezumi | Nezumi Anime Infobox.png |
@@ -81,10 +60,8 @@
 | Mr. 9 | Mr. 9 | Mr. 9 Anime Pre Timeskip Infobox.png |
 | Igaram | Igaram | Igaram Anime Pre Timeskip Infobox.png |
 | Karoo | Karoo | Karoo Anime Pre Timeskip Infobox.png |
-| Mr. 5 & Miss Valentine | Mr. 5 & Miss Valentine | — |
 | Nico Robin | Nico Robin | Nico Robin Anime Pre Timeskip Infobox.png |
 | Monkey D. Garp | Monkey D. Garp | Monkey D. Garp Anime Infobox.png |
-| Dorry & Brogy | Dorry & Brogy | — |
 | Mr. 3 | Galdino | Galdino Anime Infobox.png |
 | Miss Goldenweek | Marianne | Marianne Anime Infobox.png |
 | Wapol | Wapol | Wapol Anime Pre Timeskip Infobox.png |
@@ -98,7 +75,6 @@
 | Portgas D. Ace | Portgas D. Ace | Portgas D. Ace Anime Infobox.png |
 | Toto | Toto | Toto Anime Pre Timeskip Infobox.png |
 | Kohza | Koza | Koza Anime Pre Timeskip Infobox.png |
-| Mr. 1 & Miss Doublefinger | Mr. 1 & Miss Doublefinger | — |
 | Pell | Pell | Pell Anime Infobox.png |
 | Masira | Masira | Masira Anime Infobox.png |
 | Shoujou | Shoujou | Shoujou Anime Infobox.png |
@@ -111,14 +87,12 @@
 | Edward Newgate | Edward Newgate | Edward Newgate Anime Infobox.png |
 | Sengoku | Sengoku | Sengoku Anime Pre Timeskip Infobox.png |
 | Gan Fall | Gan Fall | Gan Fall Anime Infobox.png |
-| Conis & Pagaya | Conis & Pagaya | — |
 | Enel | Enel | Enel Anime Infobox.png |
 | Wyper | Wyper | Wyper Anime Pre Timeskip Infobox.png |
 | Aisa | Aisa | Aisa Anime Pre Timeskip Infobox.png |
 | Kalgara | Kalgara | Kalgara Anime Infobox.png |
 | Foxy | Foxy | Foxy Anime Pre Timeskip Infobox.png |
 | Kuzan | Kuzan | Kuzan Anime Pre Timeskip Infobox.png |
-| Kokoro & Chimney | Kokoro & Chimney | — |
 | Iceberg | Iceburg | Iceburg Anime Infobox.png |
 | Franky | Franky | Franky Anime Pre Timeskip Infobox.png |
 | Paulie | Paulie | Paulie Anime Pre Timeskip Infobox.png |
@@ -127,7 +101,7 @@
 | Kaku | Kaku | Kaku Anime Pre Timeskip Infobox.png |
 | Tom | Tom | Tom Anime Infobox.png |
 | Spandam | Spandam | Spandam Anime Pre Timeskip Infobox.png |
-| Professor Clover | Professor Clover | — |
+| Professor Clover | Clou D. Clover | Clou D. Clover Anime Infobox.png |
 | Nico Olvia | Nico Olvia | Nico Olvia Anime Infobox.png |
 | Jaguar D. Saul | Jaguar D. Saul | Jaguar D. Saul Anime Infobox.png |
 | Sakazuki | Sakazuki | Sakazuki Anime Pre Timeskip Infobox.png |
@@ -138,9 +112,8 @@
 | Gecko Moria | Gecko Moria | Gecko Moria Anime Infobox.png |
 | Perona | Perona | Perona Anime Pre Timeskip Infobox.png |
 | Oars | Oars | Oars Anime Infobox.png |
-| Ryuma | Ryuma (Disambiguation) | — |
+| Ryuma | Shimotsuki Ryuma | Shimotsuki Ryuma Anime Infobox.png |
 | Duval | Duval | Duval Anime Infobox.png |
-| Camie & Pappag | Camie & Pappag | — |
 | Shakky | Shakuyaku | Shakuyaku Anime Infobox.png |
 | Saint Charlos | Rosward Charlos | Rosward Charlos Anime Infobox.png |
 | Trafalgar Law | Trafalgar D. Water Law | Trafalgar D. Water Law Anime Pre Timeskip Infobox.png |
@@ -156,7 +129,6 @@
 | Margaret | Marguerite | Marguerite Anime Infobox.png |
 | Gloriosa | Gloriosa | Gloriosa Anime Infobox.png |
 | Boa Hancock | Boa Hancock | Boa Hancock Anime Infobox.png |
-| Boa Sandersonia & Marigold | Boa Sandersonia & Marigold | — |
 | Hannyabal | Hannyabal | Hannyabal Anime Pre Timeskip Infobox.png |
 | Magellan | Magellan | Magellan Anime Pre Timeskip Infobox.png |
 | Jinbe | Jinbe | Jinbe Anime Infobox.png |
@@ -164,7 +136,7 @@
 | Shiryu | Shiryu | Shiryu Anime Infobox.png |
 | Curly Dadan | Curly Dadan | Curly Dadan Anime Infobox.png |
 | Sabo | Sabo | Sabo Anime Infobox.png |
-| Madam Shyarly | Madam Shyarly | — |
+| Madam Shyarly | Shyarly | Shyarly Anime Infobox.png |
 | Fukaboshi | Fukaboshi | Fukaboshi Anime Infobox.png |
 | Neptune | Neptune | Neptune Anime Infobox.png |
 | Vander Decken IX | Vander Decken IX | Vander Decken IX Anime Infobox.png |
@@ -186,7 +158,6 @@
 | Sugar | Sugar | Sugar Anime Infobox.png |
 | Issho | Issho | Issho Anime Infobox.png |
 | Don Chinjao | Chinjao | Chinjao Anime Infobox.png |
-| The One-Legged Toy Soldier | The One-Legged Toy Soldier | — |
 | Diamante | Diamante | Diamante Anime Infobox.png |
 | Kaido | Kaidou | Kaidou Anime Infobox.png |
 | Zunesha | Zunesha | Zunesha Anime Infobox.png |
@@ -214,7 +185,7 @@
 | Kozuki Oden | Kouzuki Oden | Kouzuki Oden Anime Infobox.png |
 | Yamato | Yamato | Yamato Anime Infobox.png |
 | Uta | Uta | Uta Anime Infobox.png |
-| Vegapunk Lilith | Vegapunk Lilith | — |
+| Vegapunk Lilith | Vegapunk/Lilith | Lilith Anime Infobox.png |
 | Dr. Vegapunk | Vegapunk | Vegapunk Anime Infobox.png |
 | Jaygarcia Saturn | Jaygarcia Saturn | Jaygarcia Saturn Anime Infobox.png |
 | Loki | Loki | Loki Anime Infobox.png |
