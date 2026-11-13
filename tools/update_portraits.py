@@ -30,6 +30,10 @@ TITLES = {
     "whitebeard": "Edward Newgate",
     "blackbeard": "Marshall D. Teach",
     "morgan": "Morgan",
+    "clover": "Clover",
+    "ryuma": "Shimotsuki Ryuma",
+    "shyarly": "Shyarly",
+    "lilith": "Lilith",
 }
 # Character id -> exact wiki file to use (wins over everything else).
 FILES = {}
