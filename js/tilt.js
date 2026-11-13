@@ -111,7 +111,7 @@
   }
 
   document.addEventListener("click", (e) => {
-    const t = e.target.closest && e.target.closest(".poster .p-art, .mw-poster");
+    const t = e.target.closest && e.target.closest(".poster .p-art, .poster .p-pic, .mw-poster");
     if (!t || (box && box.contains(t))) return;
     e.preventDefault();
     open(t);
@@ -119,10 +119,10 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") close();
     const t = e.target;
-    if ((e.key === "Enter" || e.key === " ") && t && t.matches && t.matches(".poster .p-art, .mw-poster")) { e.preventDefault(); open(t); }
+    if ((e.key === "Enter" || e.key === " ") && t && t.matches && t.matches(".poster .p-art, .poster .p-pic, .mw-poster")) { e.preventDefault(); open(t); }
   });
   // make posters reachable by keyboard
-  const mark = () => document.querySelectorAll(".poster .p-art:not([tabindex]), .mw-poster:not([tabindex])").forEach((n) => {
+  const mark = () => document.querySelectorAll(".poster .p-art:not([tabindex]), .poster .p-pic:not([tabindex]), .mw-poster:not([tabindex])").forEach((n) => {
     n.tabIndex = 0; n.setAttribute("role", "button"); n.setAttribute("aria-label", (n.alt || "Your wanted poster") + " — view up close");
   });
   new MutationObserver(mark).observe(document.body, { childList: true, subtree: true });

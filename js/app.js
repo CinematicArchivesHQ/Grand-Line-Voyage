@@ -741,7 +741,10 @@
     const reveal = WANTED_POSTERS[c.id];
     const showPoster = reveal !== undefined && (!S.settings.spoiler || (reveal !== null && maxWatched() >= reveal));
     const posterImage = reveal === undefined ? "" : '<img class="p-art" src="assets/wanted/' + c.id + '.webp" alt="' + esc(c.name) + ' wanted poster" loading="lazy" decoding="async">';
-    const posterFallback = '<div class="p-wanted">WANTED</div><div class="p-photo"><span>' + esc(initials(c.name)) + '</span><em class="p-group">' + esc(g) + "</em></div>";
+    const pic = (window.GLV_PORTRAITS || {})[c.id];
+    const posterFallback = '<div class="p-wanted">WANTED</div><div class="p-photo' + (pic ? " has-pic" : "") + '">' +
+      (pic ? '<img class="p-pic" src="assets/portraits/' + c.id + '.webp" alt="' + esc(c.name) + '" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove(\'has-pic\');this.remove()">' : "") +
+      '<span>' + esc(initials(c.name)) + '</span><em class="p-group">' + esc(g) + "</em></div>";
     const posterReveal = posterImage && !showPoster
       ? '<details class="p-reveal"><summary>Show poster (bounty spoilers)</summary>' + posterImage + '</details>' : "";
     return '<article class="poster" style="--g:' + (GROUP_COLOR[g] || "#c9b58b") + '">' +
@@ -781,7 +784,7 @@
     }
     return '<div class="page-h"><h1>Crew &amp; Characters</h1><p class="muted">' + CHARS.length + " key characters, ordered by first anime appearance. " + (S.settings.spoiler ? "Spoiler shield is on — characters unlock as you watch their debut episode (" + unlocked + " of " + CHARS.length + " unlocked)." : "Spoiler shield is off — everyone is visible.") + "</p></div>" +
       crewRoster() + controls + (S.settings.spoiler ? '<p class="muted small">The spoiler shield hides later bounties. Use “Show poster” on an unlocked character to reveal their artwork.</p>' : "") + (body || '<p class="muted center">No characters match.</p>') +
-      '<p class="muted small">Poster artwork from the <a href="https://onepiece.fandom.com/wiki/Bounty/Gallery" target="_blank" rel="noopener noreferrer">One Piece Wiki wanted poster gallery</a>.</p>';
+      '<p class="muted small">Poster artwork from the <a href="https://onepiece.fandom.com/wiki/Bounty/Gallery" target="_blank" rel="noopener noreferrer">One Piece Wiki wanted poster gallery</a>; character pictures from each character&rsquo;s <a href="https://onepiece.fandom.com/" target="_blank" rel="noopener noreferrer">One Piece Wiki</a> page.</p>';
   }
   function crewRoster() {
     const mw = maxWatched();

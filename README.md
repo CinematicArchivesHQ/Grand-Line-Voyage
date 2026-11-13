@@ -68,3 +68,6 @@ Settings → **Reading style** (or the chips on the Manga tab): *Off*, *Manga fi
 ### Poster viewer
 Tap any wanted poster (Crew tab, or your own on Bounties) to hold it up to the light: it tilts with your phone's gyroscope and a sheen slides across it. iPhone asks once for Motion & Orientation access; if declined, drag a finger across the poster instead. On a computer it follows the mouse. "Reduce motion" in Settings shows it still.
 
+### Character pictures
+Characters without a wanted poster show a picture from their One Piece Wiki page, picking the earliest (pre-time-skip) anime look so the Crew tab doesn't spoil later designs. Fill them in with **Actions → Update character pictures → Run workflow**. The run summary (and `tools/portraits_report.md`) lists anything worth a manual look. To fix one, add the wiki page to `TITLES` or pin a file in `FILES` in `tools/update_portraits.py`, then rerun with that character's id in **only** (tick **force** to replace an existing picture). Characters with no picture keep the initials card.
+

@@ -654,3 +654,11 @@ details.marc .ep-list { padding: 0 10px 12px; }
 @keyframes tv-sweep { from { background-position: 120% 0; } to { background-position: -20% 0; } }
 .tv-hint { margin: 18px 0 0; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(255, 255, 255, .4); }
 #tiltView.still .tv-card, #tiltView.still .tv-card * { animation: none !important; }
+
+/* character picture inside the poster frame (characters without a wanted poster) */
+.p-photo.has-pic { height: 170px; padding: 0; overflow: hidden; background: #e8d3a6; }
+.p-photo.has-pic > span { display: none; }
+.p-photo.has-pic .p-pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%; filter: sepia(.18) saturate(.92); cursor: zoom-in; }
+.p-photo.has-pic .p-group { z-index: 2; }
+.tv-card.is-img .tv-content.p-pic { position: static; width: auto; height: auto; object-fit: contain; filter: none; background: #e8d3a6; }
+.p-photo.has-pic::after { pointer-events: none; z-index: 1; }
