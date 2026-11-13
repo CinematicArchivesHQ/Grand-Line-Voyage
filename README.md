@@ -64,3 +64,7 @@ Unofficial and fan-made; no video is hosted. ONE PIECE © Eiichiro Oda / Shueish
 Settings → **Reading style** (or the chips on the Manga tab): *Off*, *Manga first* or *Anime first*.
 - **Manga first** — Next on the voyage shows "📖 Read first: Chapters X–Y" with **Mark read** / **Open chapter**; Logbook rows get a 📖 chip. It's only a reminder — you can always mark the episode watched.
 - **Anime first** — after you mark an episode watched, a toast offers to mark its chapters read.
+
+### Poster viewer
+Tap any wanted poster (Crew tab, or your own on Bounties) to hold it up to the light: it tilts with your phone's gyroscope and a sheen slides across it. iPhone asks once for Motion & Orientation access; if declined, drag a finger across the poster instead. On a computer it follows the mouse. "Reduce motion" in Settings shows it still.
+
